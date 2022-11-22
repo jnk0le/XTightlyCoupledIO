@@ -1,0 +1,122 @@
+
+= XtightlyCoupledIO
+Jan Oleksiewicz <jnk0le@hotmail.com>
+:appversion: 0.1.0
+:toc:
+:toclevels: 4
+:sectnums:
+
+
+{author} {email} +
+document version {appversion} +
+extension status: unstable/POC +
+This document is released under a Creative Commons Attribution 4.0 International License
+
+[colophon]
+== revision history
+
+
+[colophon]
+== preface
+
+This document uses semantic versioning with respect to potential hardware designs. Assembly syntax change is a minor increment.
+Version 1.0.0 is the first publicly released. Changes in prior version are not tracked in revision history.
+
+Document is writtn in a way that maximally reduces the duplications as those are hard to maintain.
+
+There was no attempt at optimizing instruction decoding, (or packing them in less opcodes) 
+other than sticking close to canonical risc-v encodings, yet.
+
+The spec can be donated (to someFOSS org??), if it allows it to undergo more comparative studies and proceed to "standardization" 
+
+[[chapter_title]]
+== Introduction
+
+
+=== prior art
+
+==== avr8
+
+==== ti PRU (in beaglebone sbcs)
+
+==== ???
+
+
+=== alternative approaches
+
+==== map tu upper GPR
+
+==== csr
+
+==== bitbanding
+
+==== special purpose registers
+
+
+
+=== a
+//added "state" (n banks of XLEN sized) ?? //up ?
+
+=== b
+//side effects ?? (register views? bit views??) //up ?
+
+=== c
+//how to map regs by compiler (atmel approach -mmcu= vs special files) //up ?
+
+=== d
+//assembly syntax
+
+===  pseudoinstructions
+
+
+
+
+[[chapter_title]]
+== extensions
+	
+=== XTightlyCoupledIOsupp
+	
+=== XTightlyCoupledIOa
+
+=== XTightlyCoupledIOcm
+
+similarly to Zcm* extenaions
+
+
+[appendix]
+== code samples
+
+
+[appendix]
+== test
+
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0x0, attr: ['yyy'] },
+ { bits: 5, name: 'rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 7, name: 0x01, attr: ['aaa'] },
+]}
+....
+
+
+[wavedrom, , svg]
+....
+{reg:[
+    { bits:  2, name: 0x0, attr: ['C0'] },
+    { bits:  11, name: '', attr: ['FLD'] },
+    { bits:  3, name: 0b001, attr: ['FUNCT3'] },
+],config:{bits:16}}
+....
+
+FSD - 101 00
+
+FLDSP - 001 10
+
+//FSDSP allocated by Zce
+

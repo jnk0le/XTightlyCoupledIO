@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.2.0
+:appversion: 0.2.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -22,7 +22,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 This document uses semantic versioning with respect to potential hardware designs. Assembly syntax change is a minor increment.
 Version 1.0.0 is the first publicly released. Changes in prior versions are not tracked in revision history.
 
-Document is writtn in a way that maximally reduces the duplications as those are hard to maintain.
+Document is written in a way that maximally reduces the duplications as those are hard to maintain.
 
 There was no attempt at optimizing instruction decoding, (or packing them in less opcodes) 
 other than sticking close to canonical risc-v encodings, yet.

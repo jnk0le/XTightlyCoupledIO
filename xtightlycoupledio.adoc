@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.1.0
+:appversion: 0.1.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -20,17 +20,23 @@ This document is released under a Creative Commons Attribution 4.0 International
 == preface
 
 This document uses semantic versioning with respect to potential hardware designs. Assembly syntax change is a minor increment.
-Version 1.0.0 is the first publicly released. Changes in prior version are not tracked in revision history.
+Version 1.0.0 is the first publicly released. Changes in prior versions are not tracked in revision history.
 
 Document is writtn in a way that maximally reduces the duplications as those are hard to maintain.
 
 There was no attempt at optimizing instruction decoding, (or packing them in less opcodes) 
 other than sticking close to canonical risc-v encodings, yet.
 
-The spec can be donated (to someFOSS org??), if it allows it to undergo more comparative studies and proceed to "standardization" 
+The spec can be donated (to some FOSS org??), if it allows it to undergo more comparative studies and proceed to "standardization" 
 
 [[chapter_title]]
 == Introduction
+
+reduce code size and increase performance
+
+reduce the latency in control loops etc.
+
+
 
 
 === prior art
@@ -38,6 +44,9 @@ The spec can be donated (to someFOSS org??), if it allows it to undergo more com
 ==== avr8
 
 ==== ti PRU (in beaglebone sbcs)
+
+r30 gpio output
+r31 gpio input
 
 ==== ???
 
@@ -52,35 +61,88 @@ The spec can be donated (to someFOSS org??), if it allows it to undergo more com
 
 ==== special purpose registers
 
+Special kind of registers e.g GPIO BSRR/BRR found in STM32 and clones. +
+Still require loading of peripheral base address. Requires also generating 
+preformatted (shifted) constants even if only single bit is written.
+
+NOTE: those are still usefull for `tio.mv` acces as they can work on non-continous bitfields
 
 
-=== a
-//added "state" (n banks of XLEN sized) ?? //up ?
+=== programmers model
 
-=== b
-//side effects ?? (register views? bit views??) //up ?
+The XTightlyCoupledIO extension adds ???????
+// n banks of XLEN sized) ??
 
-=== c
-//how to map regs by compiler (atmel approach -mmcu= vs special files) //up ?
+NOTE: number of banks was decided totally arbitrary, will be refined later
 
-=== d
-//assembly syntax
+must commit atomically ???
 
-===  pseudoinstructions
+==== side effects
+
+For easier mapping to high level languages a bitfield insert or a single bit write to IO register
+must trigger side effects as if the read and write occured separately 
+
+[source, C]
+```
+GPIOA->OUT |= (1<<13);
+//is equivalent to
+tio.sbset io123, io123, 13
+```
+
+single bit extract/branch ?????
+
+other ????
+
+//(register views? bit views??)
+
+==== automatic mapping of memory mapped registers to tightly coupled registers
+
+intrinsics are not gonna work well
+
+//how to map regs by compiler (atmel approach -mmcu= vs special files)
+
+==== assembly syntax
+
+==== pseudoinstructions
 
 
 
 
 [[chapter_title]]
-== extensions
+== XTightlyCoupledIO subextensions
+
+The name `XTightlyCoupledIO` can be used as a catch all of following extensions.
 	
 === XTightlyCoupledIOsupp
+
+Supplementary instructions useful for alternative upper GPR approach.
+Potentially usefull in non IO code.
 	
 === XTightlyCoupledIOa
 
+general IO alu and IO move, instructions
+	
+=== XTightlyCoupledIOsb
+
+single bit IO access instructions
+
+=== XTightlyCoupledIOsbbr
+
+branch on single IO bit instriuctions
+
+=== XTightlyCoupledIObf
+
+IO destructive bitfield insert
+
 === XTightlyCoupledIOcm
 
-similarly to Zcm* extenaions
+implemented similarly to Zcm* extenaions
+
+=== XTightlyCoupledIOother
+
+other instructions that should be actually somewhere else
+
+
 
 
 [appendix]

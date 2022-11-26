@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.3.0
+:appversion: 0.3.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -69,7 +69,7 @@ Available on RVE only. Limited to 16 GPR mapped registers.
 
 ==== use custom `csr` registers
 
-However `csr` registers are generally used to modify core architectural behaviour and thus perform execute than expected.
+However `csr` registers are generally used to modify core architectural behaviour and thus perform slower than expected.
 
 ==== bitbanding
 
@@ -139,7 +139,7 @@ tio.sbset io123, io123, 13
 
 //bit views ???
 
-For more efficient efficient use of IO register space available by certain instructions.
+For more efficient use of IO register space available by certain instructions.
 
 Not reflecting actual memory mapped registers.
 

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.4.2
+:appversion: 0.4.3
 :toc:
 :toclevels: 4
 :sectnums:
@@ -79,7 +79,7 @@ Single bit instructions consists of:
 There are also `gpior` registers that serve as a scratch registers for e.g. global variables/flags. 
 Has to be used explicitly in source code.
 
-===== everything looks clean and nice but...
+.everything looks clean and nice but...
 
 let's have a look on, how efficiently it's used:
 
@@ -124,8 +124,7 @@ special instructions
 
 ==== ti c2/f2
 
-claims 2 cycle for ADC reg to float, Fig 4-3 claims 3x cycle speedup over cortex m4 (stm32g4)
-https://www.ti.com/lit/an/spracw5a/spracw5a.pdf
+<<spracw5a>> claims 2 cycle for ADC reg to float, Fig 4-3 claims 3x cycle speedup over cortex m4 (stm32g4)
 
 ==== ???
 
@@ -275,11 +274,11 @@ follow `fcvt.fmt.int` ??
 
 
 [appendix]
-== code samples
+= code samples
 
 
 [appendix]
-== test
+= test
 
 
 Encoding (RV32, RV64)::
@@ -318,3 +317,8 @@ FSD - 101 00
 FLDSP - 001 10
 
 FSDSP allocated by Zce
+
+[bibliography]
+= Bibliography
+
+* [[[spracw5a, 1]]] https://www.ti.com/lit/an/spracw5a/spracw5a.pdf

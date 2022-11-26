@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.3.2
+:appversion: 0.4.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -9,7 +9,7 @@ Jan Oleksiewicz <jnk0le@hotmail.com>
 
 {author} {email} +
 document version {appversion} +
-extension status: unstable/POC +
+extension status: unstable/PoC +
 This document is released under a Creative Commons Attribution 4.0 International License
 
 [colophon]
@@ -19,8 +19,9 @@ This document is released under a Creative Commons Attribution 4.0 International
 [colophon]
 == preface
 
-This document uses semantic versioning with respect to potential hardware designs. Assembly syntax change is a minor increment.
-Version 1.0.0 is the first publicly released. Changes in prior versions are not tracked in revision history.
+This document uses semantic versioning with respect to potential hardware designs. 
+Assembly syntax change is a minor increment. Version 1.0.0 is the first publicly released. 
+Changes in prior versions are not versioned properly and not tracked in revision history.
 
 Document is written in a way that maximally reduces the duplications as those are hard to maintain.
 
@@ -32,27 +33,94 @@ The spec can be donated (FOSS org??), if it allows it to undergo more comparativ
 [[chapter_title]]
 == Introduction
 
-reduce code size and increase performance
+The scope of XTightlyCoupledIO extension is to reduce code size, increase performance
+in peripheral accessing code. It results in reduced latency in control loops etc.
 
-reduce the latency in control loops etc.
+This speec was created solely because we would have to wait for proprietary one otherwise.
 
+And if we are talking about proprietary extensions, they are usually:
 
+- Done wrong, mainly because specs are created on tight deadlines
+- Not doing it at all (the most obvious and common approach)
+- Those specs also almost never see an outside word and if they do, they are very badly 
+documented or not documented at all (let's guess what custom extensions the ch32v003 or ch32v307 implements...)
+- They also focus on gpio too much, leaving out the most frequently used or most critical peripherals. 
 
-observation is
+NOTE: In modern microcontroller codebases the gpio tends to be accessed less frequently
+than other peripherals. And it's due to a simple reason - if the peripherals are 
+present, they no longer have to be bit-banged by gpio as it was done in the past.
 
-comes from computation
+My observation of frequent peripheral patterns are:
 
-is used for comutation
+- only single bit needs to be modified or branched on
+- register is written with a heavy constant
+- register written with zero
+- in specific cases like STM32 BSRR or flag clearing, a single bit or inverted single bit constant is used
+- the register content comes directly from/to memory
+- otherwise the content is used in/comes from computations
+- register content is immediately converted to float for computation
 
+//?? write what is provided ??
 
 === prior art
 
 ==== avr8
 
+Provides 64 IO registers each being accesible by `in` and `out` instructions, 32 o them 
+being available for the single bit instructions.
+All registers are available through IO address space and memory addres space.
+
+Single bit instructions consists of:
+
+- `sbi` and `cbi` for setting and clearing bits
+- `sbis` and `sbic` that can sip one instruction if IO bit is set/cleared
+- `sbrc` and `sbrs` that can sip one instruction if bit in general purpose register is set/cleared
+
+There are also `gpior` registers that serve as a scratch registers for e.g. global variables/flags. 
+Has to be used explicitly in source code.
+
+===== everything looks clean and nice but...
+
+let's have a look on, how efficiently it's used:
+
+atmega8::
+
+- 3 reserved registers in bottom io space +
+- 8 non-bit registers in bottom io space 
+
+atmega328p::
+
+The most used chip in arduino, as well as the most cloned one. 
+
+- 15 reserved register in bottom io space +
+- 10 reserved registers in upper io space +
+- many registers available only as memory mapped
+
+xmega::
+
+- half of the bottom IO space is dedicated for `GPIO` (aka `gpior`) registers +
+- the other half is taken by VPORTs that can map to any gpio port configured +
+- area between 0x1f and 0x30 is not populated at all +
+- 0x30 to 0x3f is populated by "CPU"
+
+VPORTs have to be configured and used explicitly in source code.
+
+AVR-DA::
+
+One of the most recent avr8 family after microchip.
+
+similarly to xmega, there is only 7 GPIO virtual ports and 4 `GPR` (aka `gpior`) registers +
+the upper part is populated only by the "CPU"
+
+//???? There are 7 gpio ports and 7 virtual ones, are those actually mapped like 
+//???? in the old avr or xmega (explicitly in source code)
+
 ==== ti PRU (in beaglebone sbcs)
 
-r30 gpio output
+r30 gpio output +
 r31 gpio input
+
+special instructions
 
 ==== ti c2/f2
 
@@ -66,8 +134,11 @@ https://www.ti.com/lit/an/spracw5a/spracw5a.pdf
 ==== map tu upper GPR
 
 Available on RVE only. Limited to 16 GPR mapped registers.
+Allows to recycle standard risc-v instructions operating on GPRs. 
 
 ==== use custom `csr` registers
+
+csrr* instrtuctions implement an atomic swap and bitmask set/clear operations.
 
 However `csr` registers are generally used to modify core architectural behaviour and thus perform slower than expected.
 
@@ -93,26 +164,27 @@ or content from pre generated lookup tables
 ==== load to IO/store from IO register
 
 Useful to directly store or load IO content to/from memory without processing.
-It is also non deterministic and can trap due to alignment or pmp restrictions, violating atomicity guarantee.
+It is also non deterministic and can trap due to e.g. alignment or pmp restrictions, violating atomicity guarantee.
 
 NOTE: still available in first alternative approach
 
 ==== IO with multiply/multiply-accumulate
 
-non deterministic
+non deterministic, sometimes multi cycle
 
 [[chapter_title]]
 == programmers model
 
 The XTightlyCoupledIO extension adds 4 banks of 32 XLEN sized IO registers each.
+The IO registers are reffered from `rs1` and/or `rd` field.
 
 If a given bank is not populated, corresponding instructions are reserved.
 
-Non-idempotent part of the IO targetting instructions must execute atomically. 
+Non-idempotent part of the IO targetting instructions must execute atomically.
 Therefore those instructions cannot be interrupted with visible side-effects.
 
 NOTE: number of banks and availability in certain instructions was decided
- totally arbitrarily, will be refined later
+totally arbitrarily, will be refined later
 
 NOTE: it is recommended to not keep registers mapped lienarly one after the other but 
 split into appropriate banks. e.g. read/write data register doesn't need to live in a bit operable banks.
@@ -192,6 +264,9 @@ other instructions that should be actually somewhere else
 
 === TODO: read and convert to float
 
+readings are often immediately converted to float for processing in control loop algorithms
+
+follow `fcvt.fmt.int` ??
 
 
 
@@ -216,6 +291,14 @@ Encoding (RV32, RV64)::
 ]}
 ....
 
+costom 0 - 0b00 010 11 - 0x0b
+
+custom 1 - 0b01 010 11 - 0x2b
+
+custom 2 - 0b10 110 11 - 0x5b
+
+custom 3 - 0b11 110 11 - 0x7b
+
 
 [wavedrom, , svg]
 ....
@@ -230,5 +313,4 @@ FSD - 101 00
 
 FLDSP - 001 10
 
-//FSDSP allocated by Zce
-
+FSDSP allocated by Zce

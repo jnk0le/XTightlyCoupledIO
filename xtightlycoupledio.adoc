@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.2.1
+:appversion: 0.3.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -27,7 +27,7 @@ Document is written in a way that maximally reduces the duplications as those ar
 There was no attempt at optimizing instruction decoding, (or packing them in less opcodes) 
 other than sticking close to canonical risc-v encodings, yet.
 
-The spec can be donated (to some FOSS org??), if it allows it to undergo more comparative studies and proceed to "standardization" 
+The spec can be donated (FOSS org??), if it allows it to undergo more comparative studies and proceed to "standardization" 
 
 [[chapter_title]]
 == Introduction
@@ -37,6 +37,12 @@ reduce code size and increase performance
 reduce the latency in control loops etc.
 
 
+
+observation is
+
+comes from computation
+
+is used for comutation
 
 
 === prior art
@@ -48,39 +54,79 @@ reduce the latency in control loops etc.
 r30 gpio output
 r31 gpio input
 
-==== ???
+==== ti c2/f2
 
+claims 2 cycle for ADC reg to float, Fig 4-3 claims 3x cycle speedup over cortex m4 (stm32g4)
+https://www.ti.com/lit/an/spracw5a/spracw5a.pdf
+
+==== ???
 
 === alternative approaches
 
 ==== map tu upper GPR
 
-==== csr
+Available on RVE only. Limited to 16 GPR mapped registers.
+
+==== use custom `csr` registers
+
+However `csr` registers are generally used to modify core architectural behaviour and thus perform execute than expected.
 
 ==== bitbanding
 
-==== special purpose registers
+Implemented by cortex-m3 and cortex-m4
 
-Special kind of registers e.g GPIO BSRR/BRR found in STM32 and clones. +
+Not available on cortex-m0 and cortex-m7, optional on cortex-m3/m4. +
+Still requires loading of base address for bitbanded bit. 
+Must be used explicitly in source code
+
+==== special purpose write only registers
+
+Special kind of write only registers e.g BSRR/IFCR found in STM32 and clones. +
 Still require loading of peripheral base address. Requires also generating 
 preformatted (shifted) constants even if only single bit is written.
 
-NOTE: those are still usefull for `tio.mv` acces as they can work on non-continous bitfields
+NOTE: BSRR is still usefull for `tio.mv` acces as it can work on non-continous bitfields 
+or content from pre generated lookup tables 
 
+=== omitted instructions
 
-=== programmers model
+==== load to IO/store from IO register
 
-The XTightlyCoupledIO extension adds ???????
-// n banks of XLEN sized) ??
+Useful to directly store or load IO content to/from memory without processing.
+It is also non deterministic and can trap due to alignment or pmp restrictions, violating atomicity guarantee.
 
-NOTE: number of banks was decided totally arbitrary, will be refined later
+NOTE: still available in first alternative approach
 
-must commit atomically ???
+==== IO with multiply/multiply-accumulate
+
+non deterministic
+
+[[chapter_title]]
+== programmers model
+
+The XTightlyCoupledIO extension adds 4 banks of 32 XLEN sized IO registers each.
+
+If a given bank is not populated, corresponding instructions are reserved.
+
+Non-idempotent part of the IO targetting instructions must execute atomically. 
+Therefore those instructions cannot be interrupted with visible side-effects.
+
+NOTE: number of banks and availability in certain instructions was decided
+ totally arbitrarily, will be refined later
+
+NOTE: it is recommended to not keep registers mapped lienarly one after the other but 
+split into appropriate banks. e.g. read/write data register doesn't need to live in a bit operable banks.
 
 ==== side effects
 
-For easier mapping to high level languages a bitfield insert or a single bit write to IO register
-must trigger side effects as if the read and write occured separately 
+For easier mapping to high level languages, any access to IO registers causes
+side effects as if the entire XLEN sized word was accessed.
+
+A partial modification triggers side effects as if the entire XLEN sized word
+was read, modified and written back.
+
+NOTE: easiest way to avoid implementation issues is to not have side
+effects on reads or writes of the previously read value in config registers
 
 [source, C]
 ```
@@ -89,11 +135,13 @@ GPIOA->OUT |= (1<<13);
 tio.sbset io123, io123, 13
 ```
 
-single bit extract/branch ?????
+===== TODO: grouping of bits from multiple different registers
 
-other ????
+//bit views ???
 
-//(register views? bit views??)
+For more efficient efficient use of IO register space available by certain instructions.
+
+Not reflecting actual memory mapped registers.
 
 ==== automatic mapping of memory mapped registers to tightly coupled registers
 
@@ -136,11 +184,13 @@ IO destructive bitfield insert
 
 === XTightlyCoupledIOcm
 
-implemented similarly to Zcm* extenaions
+implemented similarly to Zcm* extenaions, incompatible with Zcd
 
 === XTightlyCoupledIOother
 
 other instructions that should be actually somewhere else
+
+=== TODO: read and convert to float
 
 
 

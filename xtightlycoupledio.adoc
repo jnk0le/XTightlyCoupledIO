@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.4.0
+:appversion: 0.4.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -92,7 +92,7 @@ atmega328p::
 
 The most used chip in arduino, as well as the most cloned one. 
 
-- 15 reserved register in bottom io space +
+- 15 reserved registers in bottom io space +
 - 10 reserved registers in upper io space +
 - many registers available only as memory mapped
 

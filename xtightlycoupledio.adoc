@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.4.1
+:appversion: 0.4.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -141,6 +141,10 @@ Allows to recycle standard risc-v instructions operating on GPRs.
 csrr* instrtuctions implement an atomic swap and bitmask set/clear operations.
 
 However `csr` registers are generally used to modify core architectural behaviour and thus perform slower than expected.
+
+NOTE: for this reason RISC-V V spec forbids writes to `vtype` and `vl` with anything but `vsetvl` instructions
+
+NOTE: xpulp extension is also planning on disallowing writes to hwloop registers with general csr instructions
 
 ==== bitbanding
 

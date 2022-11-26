@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.3.1
+:appversion: 0.3.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -117,7 +117,7 @@ NOTE: number of banks and availability in certain instructions was decided
 NOTE: it is recommended to not keep registers mapped lienarly one after the other but 
 split into appropriate banks. e.g. read/write data register doesn't need to live in a bit operable banks.
 
-==== side effects
+=== side effects
 
 For easier mapping to high level languages, any access to IO registers causes
 side effects as if the entire XLEN sized word was accessed.
@@ -135,7 +135,7 @@ GPIOA->OUT |= (1<<13);
 tio.sbset io123, io123, 13
 ```
 
-===== TODO: grouping of bits from multiple different registers
+==== TODO: grouping of bits from multiple different registers
 
 //bit views ???
 
@@ -143,13 +143,13 @@ For more efficient use of IO register space available by certain instructions.
 
 Not reflecting actual memory mapped registers.
 
-==== automatic mapping of memory mapped registers to tightly coupled registers
+=== automatic mapping of memory mapped registers to tightly coupled registers
 
 intrinsics are not gonna work well
 
 //how to map regs by compiler (atmel approach -mmcu= vs special files)
 
-==== assembly syntax
+=== assembly syntax
 
 ==== pseudoinstructions
 

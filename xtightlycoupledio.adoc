@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.7.1
+:appversion: 0.8.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -296,10 +296,59 @@ doesn't provide bitwise and/or/xor in its early ALU
 
 The name `XTightlyCoupledIO` can be used as a catch all of following extensions.
 	
+NOTE: only the low 32bits of target register is accesible by branch instructions on rv64
+	
 === XTightlyCoupledIOsupp
 
 Supplementary instructions useful for alternative upper GPR approach.
 Potentially usefull in non IO code.
+
+==== tio.bsbseti
+
+Synopsis::
+Branch if single bit in register is set (immediate)
+
+Mnemonic::
+```
+tio.bsbset rs1, shamt, label
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
+ { bits: 5, name: 'imm[4:1|11]' },
+ { bits: 3, name: 0b000 },
+ { bits: 5, name: 'rs1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 7, name: 'imm[12|10:5]' },
+]}
+....
+
+==== tio.bsbclri
+
+Synopsis::
+Branch if single bit in register is cleared (immediate)
+
+Mnemonic::
+```
+tio.bsbclr rs1, shamt, label
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
+ { bits: 5, name: 'imm[4:1|11]' },
+ { bits: 3, name: 0b001 },
+ { bits: 5, name: 'rs1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 7, name: 'imm[12|10:5]' },
+]}
+....
+
 	
 === XTightlyCoupledIOa
 
@@ -313,6 +362,56 @@ single bit IO access instructions
 
 branch on single IO bit instriuctions
 
+==== tio.bsbioseti
+
+Synopsis::
+Branch if single bit in IO register is set (immediate)
+
+Mnemonic::
+```
+tio.bsbioseti{bank} ios1, shamt, label
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
+ { bits: 5, name: 'imm[4:1|11]' },
+ { bits: 2, name: 0b10 },
+ { bits: 1, name: 'bsel' },
+ { bits: 5, name: 'ios1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 7, name: 'imm[12|10:5]' },
+]}
+....
+
+==== tio.bsbioclri
+
+Synopsis::
+Branch if single bit in IO register is cleared (immediate)
+
+Mnemonic::
+```
+tio.bsbioclri{bank} ios1, shamt, label
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
+ { bits: 5, name: 'imm[4:1|11]' },
+ { bits: 2, name: 0b11 },
+ { bits: 1, name: 'bsel' },
+ { bits: 5, name: 'ios1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 7, name: 'imm[12|10:5]' },
+]}
+....
+
+
+
 === XTightlyCoupledIObf
 
 IO destructive bitfield insert
@@ -320,10 +419,6 @@ IO destructive bitfield insert
 === XTightlyCoupledIOcm
 
 implemented similarly to Zcm* extenaions, incompatible with Zcd
-
-=== XTightlyCoupledIOother
-
-other instructions that should be actually somewhere else
 
 === TODO: read and convert to float
 

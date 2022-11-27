@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.10.0
+:appversion: 0.10.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -440,6 +440,8 @@ implemented similarly to Zcm* extenaions, incompatible with Zcd
 
 === XTightlyCoupledIOfcvt
 
+implemented similarly to F or Zfinx instructions
+
 NOTE: readings are often immediately converted to float for processing in control loop algorithms
 
 ==== tio.fcvt.s.w.sy
@@ -499,6 +501,7 @@ Prerequisites::
 F or Zfinx
 
 ==== TODO: double precision and rv64
+//need to reduce duplication
 
 [appendix]
 = code samples

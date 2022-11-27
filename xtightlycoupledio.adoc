@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.8.1
+:appversion: 0.8.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -107,7 +107,6 @@ One of the most recent avr8 family after Microchip.
 +
 similarly to xmega, there is only 7 GPIO virtual ports and 4 `GPR` (aka `gpior`) registers +
 the upper part is populated only by the "CPU"
-
 
 //???? There are 7 gpio ports and 7 virtual ones, are those actually mapped like 
 //???? in the old avr or xmega (explicitly in source code)
@@ -220,12 +219,12 @@ Not reflecting actual memory mapped registers.
 For efficient use (aka having it used at all) of the `tio` instructions, the compilers
 need to automatically translate accesses to memory mapped registers into IO address space.
 
-In case of avr8 the compiler received information about target mcu by the "-mcpu=" flag, for
+In case of avr8, the compiler received information about target mcu by the "-mcpu=" flag, for
 automatic mapping of memory mapped peripherals into IO address space.
 As the Atmel defacto controlled avr architecture, they had all of the possible IO mappings upstreamed.
 Any chinese clone was cloning the IO address space layout of existing device exactly.
 
-In case of risc-v we are about to end up with thousands of outdated custom toolchains. 
+In case of risc-v we are about to end up with thousands outdated builds of custom toolchains. 
 As is already happening with interrupt controllers (e.g. WCH hw stacking)
 
 Therefore we need an unified file format describing peripheral to IO mapping, that will be provided by vendors. 
@@ -345,11 +344,10 @@ Encoding (RV32, RV64)::
  { bits: 7, name: 'imm[12|10:5]' },
 ]}
 ....
-
 	
 === XTightlyCoupledIOa
 
-general IO alu and IO move, instructions
+general IO alu, instructions
 
 === XTightlyCoupledIOsb
 
@@ -366,7 +364,7 @@ Branch if single bit in IO register is set (immediate)
 
 Mnemonic::
 ```
-tio.bsbioseti{bank} ios1, shamt, label
+tio.bsbioseti{bsel} ios1, shamt, label
 ```
 
 Encoding (RV32, RV64)::
@@ -390,7 +388,7 @@ Branch if single bit in IO register is cleared (immediate)
 
 Mnemonic::
 ```
-tio.bsbioclri{bank} ios1, shamt, label
+tio.bsbioclri{bsel} ios1, shamt, label
 ```
 
 Encoding (RV32, RV64)::

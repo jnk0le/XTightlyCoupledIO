@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.5.0
+:appversion: 0.6.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -220,9 +220,23 @@ Not reflecting actual memory mapped registers.
 
 === automatic mapping of memory mapped registers to tightly coupled registers
 
-intrinsics are not gonna work well
+For efficient use (aka having it used at all) of the `tio` instructions, the compilers
+need to automatically translate accesses to memory mapped registers into IO address space.
 
-//how to map regs by compiler (atmel approach -mmcu= vs special files)
+In case of avr8 the compiler received information about target mcu by the "-mcpu=" flag, for
+automatic mapping of memory mapped peripherals into IO address space.
+As the atmel defacto controlled avr architecture, they had all of the possible IO mappings upstreamed.
+Any chinese clone was cloning the IO address space layout of existing device exactly.
+
+In case of risc-v we are about to end up with thousands of outdated custom toolchains. 
+As is already happening with interrupt controllers (e.g. WCH hw stacking)
+
+Therefore we need an unified file format describing peripheral to IO mapping, that will be provided by vendors. 
+It will be passed to compiler command line similarly to source code or linker scripts.
+
+NOTE: Those mapping files can be also self made in case of "typical chinese vendors"
+
+==== TODO: define the iomapping file format
 
 === assembly syntax
 

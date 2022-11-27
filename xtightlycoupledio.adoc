@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.9.0
+:appversion: 0.10.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -430,8 +430,6 @@ Encoding (RV32, RV64)::
 ]}
 ....
 
-
-
 === XTightlyCoupledIObf
 
 IO destructive bitfield insert
@@ -440,13 +438,67 @@ IO destructive bitfield insert
 
 implemented similarly to Zcm* extenaions, incompatible with Zcd
 
-=== TODO: read and convert to float
+=== XTightlyCoupledIOfcvt
 
-readings are often immediately converted to float for processing in control loop algorithms
+NOTE: readings are often immediately converted to float for processing in control loop algorithms
 
-follow `fcvt.fmt.int` ??
+==== tio.fcvt.s.w.sy
 
+Synopsis::
+Read IO register and convert to float
 
+Mnemonic::
+```
+tio.fcvt{bsel}.s.w.sy rd, ios1, rm
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-3'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 'rm' },
+ { bits: 5, name: 'ios1' },
+ { bits: 5, name: 0b00000 },
+ { bits: 2, name: 'fmt', attr: ['S'] },
+ { bits: 3, name: 0b000 },
+ { bits: 2, name: 'bsel[1:0]' },
+]}
+....
+
+Prerequisites::
+F or Zfinx
+
+==== tio.fcvt.s.wu.sy
+
+Synopsis::
+Read IO register and convert to float
+
+Mnemonic::
+```
+tio.fcvt{bsel}.s.wu.sy rd, ios1, rm
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-3'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 'rm' },
+ { bits: 5, name: 'ios1' },
+ { bits: 5, name: 0b00001 },
+ { bits: 2, name: 'fmt', attr: ['S'] },
+ { bits: 3, name: 0b000 },
+ { bits: 2, name: 'bsel[1:0]' },
+]}
+....
+
+Prerequisites::
+F or Zfinx
+
+==== TODO: double precision and rv64
 
 [appendix]
 = code samples

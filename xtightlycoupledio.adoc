@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.8.0
+:appversion: 0.8.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -84,33 +84,30 @@ Has to be used explicitly in source code.
 let's have a look on, how efficiently it's used:
 
 atmega8::
-
 - 3 reserved registers in bottom io space
 - 8 non-bit registers in bottom io space 
 
 atmega328p::
-
 The most used chip in arduino, as well as the most cloned one. 
-
++
 - 15 reserved registers in bottom io space
 - 10 reserved registers in upper io space
 - many registers available only as memory mapped
 
 xmega::
-
 - half of the bottom IO space is dedicated for `GPIO` (aka `gpior`) registers
 - the other half is taken by VPORTs that can map to any gpio port configured
 - area between 0x1f and 0x30 is not populated at all +
 - 0x30 to 0x3f is populated by "CPU"
-
++
 VPORTs have to be configured and used explicitly in source code.
 
 AVR-DA::
-
 One of the most recent avr8 family after Microchip.
-
++
 similarly to xmega, there is only 7 GPIO virtual ports and 4 `GPR` (aka `gpior`) registers +
 the upper part is populated only by the "CPU"
+
 
 //???? There are 7 gpio ports and 7 virtual ones, are those actually mapped like 
 //???? in the old avr or xmega (explicitly in source code)

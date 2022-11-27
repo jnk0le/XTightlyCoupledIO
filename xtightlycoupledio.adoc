@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.10.1
+:appversion: 0.10.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -232,7 +232,11 @@ It will be passed to compiler command line similarly to source code or linker sc
 
 NOTE: Those mapping files can be also self made in case of "typical chinese vendors"
 
+NOTE: Those files could be used to provide named aliases in debuggers/decompilers
+
 ==== TODO: define the iomapping file format
+
+==== TODO: named aliases for use in assembly
 
 === assembly syntax
 

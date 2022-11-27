@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.6.0
+:appversion: 0.6.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -107,7 +107,7 @@ VPORTs have to be configured and used explicitly in source code.
 
 AVR-DA::
 
-One of the most recent avr8 family after microchip.
+One of the most recent avr8 family after Microchip.
 
 similarly to xmega, there is only 7 GPIO virtual ports and 4 `GPR` (aka `gpior`) registers +
 the upper part is populated only by the "CPU"
@@ -225,7 +225,7 @@ need to automatically translate accesses to memory mapped registers into IO addr
 
 In case of avr8 the compiler received information about target mcu by the "-mcpu=" flag, for
 automatic mapping of memory mapped peripherals into IO address space.
-As the atmel defacto controlled avr architecture, they had all of the possible IO mappings upstreamed.
+As the Atmel defacto controlled avr architecture, they had all of the possible IO mappings upstreamed.
 Any chinese clone was cloning the IO address space layout of existing device exactly.
 
 In case of risc-v we are about to end up with thousands of outdated custom toolchains. 

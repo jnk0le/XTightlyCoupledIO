@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.6.1
+:appversion: 0.6.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -253,8 +253,8 @@ and {rd} and {rs1} are substituted with one of the following letters .
 Register specifiers use the same letter.
 
 ```
-tio.sbseti3.yy y11, y11, 13 // set 13th bit in 11th io register in bank 3
-tio.sbseti2.yx y22, zero, 17 // write (1<<17) to 22nd io register in bank 2
+tio.sbseti3.yy y11, y11, 13 // set 13th bit in 12th io register in bank 3
+tio.sbseti2.yx y22, zero, 17 // write (1<<17) to 23rd io register in bank 2
 ```
 
 NOTE: letter y was picked totally arbitrarily as it's single letter and doesn't have conflicts
@@ -267,8 +267,8 @@ Pseudoinstructions use the `io` name prefix as the register specifier with
 linearized addressing. The `.yy` form cannot cross the banks.
 
 ```
-tio.sbseti io108, io108, 13 // set 13th bit in 11th io register in bank 3
-tio.sbseti io87, zero, 17 // write (1<<17) to 22nd io register in bank 2
+tio.sbseti io107, io107, 13 // set 13th bit in 12th io register in bank 3
+tio.sbseti io86, zero, 17 // write (1<<17) to 23rd io register in bank 2
 ```
 
 [[chapter_title]]

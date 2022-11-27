@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.7.0
+:appversion: 0.7.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -41,7 +41,7 @@ This speec was created solely because we would have to wait for proprietary one 
 And if we are talking about proprietary extensions, they are usually:
 
 - Done wrong, mainly because specs are created on tight deadlines
-- Not doing it at all (the most obvious and common approach)
+- Not done at all (the most obvious and common approach)
 - Those specs also almost never see an outside word and if they do, they are very badly 
 documented or not documented at all (let's guess what custom extensions the ch32v003 or ch32v307 implements...)
 - They also focus on gpio too much, leaving out the most frequently used or most critical peripherals. 

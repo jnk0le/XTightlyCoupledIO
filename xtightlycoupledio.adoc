@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.4.3
+:appversion: 0.5.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -207,7 +207,7 @@ effects on reads or writes of the previously read value in config registers
 ```
 GPIOA->OUT |= (1<<13);
 //is equivalent to
-tio.sbset io123, io123, 13
+tio.sbseti io123, io123, 13
 ```
 
 ==== TODO: grouping of bits from multiple different registers
@@ -226,10 +226,36 @@ intrinsics are not gonna work well
 
 === assembly syntax
 
+All added instructions are prefixed with `tio.` prefix. +
+Bank number is part of the instruction name. +
+The suffix denominates wether `rd` or `rs1` field targets io registers +
+Takes the form of `tio.instr{n}.{rd}{rs1}` where {n} is the bank number
+and {rd} and {rs1} are substituted with one of the following letters .
+
+- x - integer reg
+- s - floating point reg
+- y - io reg
+
+Register specifiers use the same letter.
+
+```
+tio.sbseti3.yy y11, y11, 13 // set 13th bit in 11th io register in bank 3
+tio.sbseti2.yx y22, zero, 17 // write (1<<17) to 22nd io register in bank 2
+```
+
+NOTE: letter y was picked totally arbitrarily as it's single letter and doesn't have conflicts
+
 ==== pseudoinstructions
 
+`tio` instructions referred to without the bank number and suffix.
 
+Pseudoinstructions use the `io` name prefix as the register specifier with
+linearized addressing. The `.yy` form cannot cross the banks.
 
+```
+tio.sbseti io108, io108, 13 // set 13th bit in 11th io register in bank 3
+tio.sbseti io87, zero, 17 // write (1<<17) to 22nd io register in bank 2
+```
 
 [[chapter_title]]
 == XTightlyCoupledIO subextensions
@@ -244,7 +270,7 @@ Potentially usefull in non IO code.
 === XTightlyCoupledIOa
 
 general IO alu and IO move, instructions
-	
+
 === XTightlyCoupledIOsb
 
 single bit IO access instructions

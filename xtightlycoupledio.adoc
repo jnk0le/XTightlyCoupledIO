@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.6.3
+:appversion: 0.7.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -85,21 +85,21 @@ let's have a look on, how efficiently it's used:
 
 atmega8::
 
-- 3 reserved registers in bottom io space +
+- 3 reserved registers in bottom io space
 - 8 non-bit registers in bottom io space 
 
 atmega328p::
 
 The most used chip in arduino, as well as the most cloned one. 
 
-- 15 reserved registers in bottom io space +
-- 10 reserved registers in upper io space +
+- 15 reserved registers in bottom io space
+- 10 reserved registers in upper io space
 - many registers available only as memory mapped
 
 xmega::
 
-- half of the bottom IO space is dedicated for `GPIO` (aka `gpior`) registers +
-- the other half is taken by VPORTs that can map to any gpio port configured +
+- half of the bottom IO space is dedicated for `GPIO` (aka `gpior`) registers
+- the other half is taken by VPORTs that can map to any gpio port configured
 - area between 0x1f and 0x30 is not populated at all +
 - 0x30 to 0x3f is populated by "CPU"
 
@@ -179,7 +179,7 @@ non deterministic, sometimes multi cycle
 == programmers model
 
 The XTightlyCoupledIO extension adds 4 banks of 32 XLEN sized IO registers each.
-The IO registers are reffered from `rs1` and/or `rd` field.
+The IO registers are reffered from `rs1` and/or `rd` field. Named `ios1` and `iod`.
 
 If a given bank is not populated, corresponding instructions are reserved.
 
@@ -270,6 +270,26 @@ linearized addressing. The `.yy` form cannot cross the banks.
 tio.sbseti io107, io107, 13 // set bit 13 in io 11 register in bank 3
 tio.sbseti io86, zero, 17 // write (1<<17) to io 22 register in bank 2
 ```
+
+===== Canonical io move instruction
+
+The following instructions are designated as a canonical IO move instructions:
+
+```
+tio.add{n}.yx iod, rs1, zero 
+tio.add{n}.xy rd, ios1, zero
+tio.add{n}.yy iod, ios1, zero // doesn't cross banks
+```
+
+Available under `tio.mv` name with suffixed or linearized version.
+
+NOTE: The canonical move in base risc-v is an `addi`, but because of 
+limited encoding, `tio.addi` cannot be provided with all necessary forms.
+Therefore alternative instruction was picked.
+
+NOTE: `tio.add` was picked because an addition is one of the most common 
+operations and the add ALU tend's to be most available one. e.g. cortex-m7
+doesn't provide bitwise and/or/xor in its early ALU
 
 [[chapter_title]]
 == XTightlyCoupledIO subextensions

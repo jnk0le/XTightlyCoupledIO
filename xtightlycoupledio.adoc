@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.8.2
+:appversion: 0.9.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -348,6 +348,31 @@ Encoding (RV32, RV64)::
 === XTightlyCoupledIOa
 
 general IO alu, instructions
+
+==== tio.addi.yx
+
+Synopsis::
+Add immediate and write to io register
+
+Mnemonic::
+```
+tio.addi{bsel}.yx iod, rs1, imm
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 2, name: 0b00 },
+ { bits: 1, name: 'bsel' },
+ { bits: 5, name: 'rs1' },
+ { bits: 12, name: 'imm[11:0]' },
+]}
+....
+
+NOTE: `lui` + `tio.addi` pair can be used to write any 32bit constant into IO register.
 
 === XTightlyCoupledIOsb
 

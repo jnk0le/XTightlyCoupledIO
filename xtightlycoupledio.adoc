@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.11.0
+:appversion: 0.12.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -242,8 +242,8 @@ NOTE: Those files could be used to provide named aliases in debuggers/decompiler
 
 === assembly syntax
 
-All added instructions are prefixed with `tio.` prefix. +
-Bank number is part of the instruction name. +
+All IO accessing instructions are prefixed with `tio.` prefix. +
+Bank number is part of the instruction name, except supplementary instructions. +
 The suffix denominates wether `rd` or `rs1` field targets io registers +
 Takes the form of `tio.instr{n}.{rd}{rs1}` where {n} is the bank number
 and {rd} and {rs1} are substituted with one of the following letters .
@@ -305,14 +305,14 @@ NOTE: only the low 32bits of target register is accesible by branch instructions
 Supplementary instructions useful for alternative upper GPR approach.
 Potentially usefull in non IO code.
 
-==== tio.bsbseti
+==== tio.bsbseti (.x)
 
 Synopsis::
 Branch if single bit in register is set (immediate)
 
 Mnemonic::
 ```
-tio.bsbset rs1, shamt, label
+tio.bsbset.x rs1, shamt, label
 ```
 
 Encoding (RV32, RV64)::
@@ -328,14 +328,14 @@ Encoding (RV32, RV64)::
 ]}
 ....
 
-==== tio.bsbclri
+==== tio.bsbclri (.x)
 
 Synopsis::
 Branch if single bit in register is cleared (immediate)
 
 Mnemonic::
 ```
-tio.bsbclr rs1, shamt, label
+tio.bsbclr.x rs1, shamt, label
 ```
 
 Encoding (RV32, RV64)::
@@ -388,14 +388,14 @@ single bit IO access instructions
 
 branch on single IO bit instriuctions
 
-==== tio.bsbioseti
+==== tio.bsbseti
 
 Synopsis::
 Branch if single bit in IO register is set (immediate)
 
 Mnemonic::
 ```
-tio.bsbioseti{bsel} ios1, shamt, label
+tio.bsbseti{bsel}.y ios1, shamt, label
 ```
 
 Encoding (RV32, RV64)::
@@ -412,14 +412,14 @@ Encoding (RV32, RV64)::
 ]}
 ....
 
-==== tio.bsbioclri
+==== tio.bsbclri
 
 Synopsis::
 Branch if single bit in IO register is cleared (immediate)
 
 Mnemonic::
 ```
-tio.bsbioclri{bsel} ios1, shamt, label
+tio.bsbclri{bsel}.y ios1, shamt, label
 ```
 
 Encoding (RV32, RV64)::

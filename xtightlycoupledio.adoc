@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.10.2
+:appversion: 0.11.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -43,7 +43,7 @@ And if we are talking about proprietary extensions, they are usually:
 - Done wrong, mainly because specs are created on tight deadlines
 - Not done at all (the most obvious and common approach)
 - Those specs also almost never see an outside word and if they do, they are very badly 
-documented or not documented at all (let's guess what custom extensions the ch32v003 or ch32v307 implements...)
+documented or not documented at all (let's guess what custom instructions the ch32v003 or ch32v307 implements...)
 - They also focus on gpio too much, leaving out the most frequently used or most critical peripherals. 
 
 NOTE: In modern microcontroller codebases the gpio tends to be accessed less frequently
@@ -61,6 +61,8 @@ My observation of frequent peripheral patterns are:
 - register content is immediately converted to float for computation
 
 //?? write what is provided ??
+// get rid of addr load ???
+//registers are volatile so not much opt can be done??
 
 === prior art
 
@@ -437,6 +439,48 @@ Encoding (RV32, RV64)::
 === XTightlyCoupledIObf
 
 IO destructive bitfield insert
+
+==== tio.bfinserti
+
+Synopsis::
+Destructive bitfield insert into IO register (immediate)
+
+Mnemonic::
+```
+tio.bfinsert{bsel}.yx iod, rs1, shamt, len
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0b001 },
+ { bits: 5, name: 'rs1' },
+ { bits: 5, name: 'offset' },
+ { bits: 5, name: 'len' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 2, name: 0b01 },
+ { bits: 1, name: 'bsel' },
+ { bits: 5, name: 'rs1' },
+ { bits: 6, name: 'offset' },
+ { bits: 6, name: 'len' },
+]}
+....
+
+NOTE: due to encoding constraints only destructive form is provided
+
+NOTE: rv64 encoding could tradeoff the extra len/offset range similarly to branches
 
 === XTightlyCoupledIOcm
 

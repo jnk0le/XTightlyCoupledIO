@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.12.2
+:appversion: 0.13.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -358,6 +358,47 @@ Encoding (RV32, RV64)::
 
 NOTE: instruction proposed as Zce 32bit candidate
 
+==== tio.bfinserti (.x)
+
+Synopsis::
+Destructive bitfield insert into register (immediate)
+
+Mnemonic::
+```
+tio.bfinserti.xx rd, rs1, shamt, len
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-0'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0b100 },
+ { bits: 5, name: 'rs1' },
+ { bits: 5, name: 'offset' },
+ { bits: 5, name: 'len' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-0'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0b100 },
+ { bits: 5, name: 'rs1' },
+ { bits: 6, name: 'offset' },
+ { bits: 6, name: 'len' },
+]}
+....
+
+NOTE: due to encoding constraints only destructive form is provided
+
+NOTE: instruction was proposed for P extension as there are many more rd destructive ones 
+
 === XTightlyCoupledIOa
 
 general IO alu, instructions
@@ -454,7 +495,7 @@ Destructive bitfield insert into IO register (immediate)
 
 Mnemonic::
 ```
-tio.bfinsert{bsel}.yx iod, rs1, shamt, len
+tio.bfinserti{bsel}.yx iod, rs1, shamt, len
 ```
 
 Encoding (RV32)::

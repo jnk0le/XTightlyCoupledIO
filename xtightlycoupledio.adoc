@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.14.2
+:appversion: 0.14.3
 :toc:
 :toclevels: 4
 :sectnums:
@@ -613,6 +613,12 @@ NOTE: on rv64 `tio.bexti` can reach the upper 32 bits in addition to `tio.bsb*` 
 ==== TODO: inverted single bit constant
 
 We can achieve this in 2 instructions:
+
+```
+lui a0, %hi(~(1<<pos))
+tio.addi iod, a0, %lo(~(1<<pos))
+```
+or
 ```
 bseti a0, zero, shamt
 tio.xnor iod, zero, a0

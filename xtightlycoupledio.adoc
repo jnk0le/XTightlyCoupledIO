@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.13.1
+:appversion: 0.13.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -295,6 +295,9 @@ Therefore alternative instruction was picked.
 NOTE: `tio.add` was picked because an addition is one of the most common 
 operations and the add ALU tend's to be most available one. e.g. cortex-m7
 doesn't provide bitwise and/or/xor in its early ALU
+
+NOTE: the move to/form IO registeris are not named as `in` and `out`
+as I find those names confusing
 
 [[chapter_title]]
 == XTightlyCoupledIO subextensions

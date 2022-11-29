@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.13.0
+:appversion: 0.13.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -308,7 +308,7 @@ NOTE: only the low 32bits of target register is accesible by branch instructions
 Supplementary instructions useful for alternative upper GPR approach.
 Potentially usefull in non IO code.
 
-==== tio.bsbseti (.x)
+==== tio.bsbseti.x
 
 Synopsis::
 Branch if single bit in register is set (immediate)
@@ -333,7 +333,7 @@ Encoding (RV32, RV64)::
 
 NOTE: instruction proposed as Zce 32bit candidate
 
-==== tio.bsbclri (.x)
+==== tio.bsbclri.x
 
 Synopsis::
 Branch if single bit in register is cleared (immediate)
@@ -358,7 +358,7 @@ Encoding (RV32, RV64)::
 
 NOTE: instruction proposed as Zce 32bit candidate
 
-==== tio.bfinserti (.x)
+==== tio.bfinserti.xx
 
 Synopsis::
 Destructive bitfield insert into register (immediate)
@@ -436,7 +436,7 @@ single bit IO access instructions
 
 branch on single IO bit instriuctions
 
-==== tio.bsbseti
+==== tio.bsbseti.y
 
 Synopsis::
 Branch if single bit in IO register is set (immediate)
@@ -460,7 +460,7 @@ Encoding (RV32, RV64)::
 ]}
 ....
 
-==== tio.bsbclri
+==== tio.bsbclri.y
 
 Synopsis::
 Branch if single bit in IO register is cleared (immediate)
@@ -488,7 +488,7 @@ Encoding (RV32, RV64)::
 
 IO destructive bitfield insert
 
-==== tio.bfinserti
+==== tio.bfinserti.yx
 
 Synopsis::
 Destructive bitfield insert into IO register (immediate)

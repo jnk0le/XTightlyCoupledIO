@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.12.0
+:appversion: 0.12.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -198,9 +198,6 @@ side effects as if the entire XLEN sized word was accessed.
 A partial modification triggers side effects as if the entire XLEN sized word
 was read, modified and written back.
 
-NOTE: easiest way to avoid implementation issues is to not have side
-effects on reads or writes of the previously read value in config registers
-
 [source, C]
 ```
 GPIOA->OUT |= (1<<13);
@@ -215,6 +212,12 @@ tio.sbseti io123, io123, 13
 For more efficient use of IO register space available by certain instructions.
 
 Not reflecting actual memory mapped registers.
+
+==== TODO: multi core atomicity etc.
+
+Core vs DMA is a likely scenario. +
+In C the above RMW operation is non atomic. The tio isntructions can do atomic RMW what 
+could lead to abuse of observed behaviour (bugs when porting from tio to non-tio mcu)
 
 === automatic mapping of memory mapped registers to tightly coupled registers
 

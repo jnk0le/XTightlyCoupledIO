@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.13.3
+:appversion: 0.14.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -434,6 +434,191 @@ NOTE: `lui` + `tio.addi` pair can be used to write any 32bit constant into IO re
 === XTightlyCoupledIOsb
 
 single bit IO access instructions
+
+The `.xx` form of those instructions is reserved
+
+NOTE: the .yy form can be further limited to target only one IO register
+for more efficient implementations
+
+NOTE: rdm, and rsm control the modification of rd and rs1 field
+
+==== tio.bseti
+
+Synopsis::
+Single bit set (immediate)
+
+Mnemonic::
+```
+tio.bseti{bsel}.{x,y}{x,y}
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b000 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 3, name: 0b010 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b000 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 6, name: 'shamt' },
+ { bits: 2, name: 0b01 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+NOTE: `tio.bseti` can be generate any single bit constant by using zero register
+
+==== tio.bclri
+
+Synopsis::
+Single bit clear (immediate)
+
+Mnemonic::
+```
+tio.bclri{bsel}.{x,y}{x,y}
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b000 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 3, name: 0b100 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b000 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 6, name: 'shamt' },
+ { bits: 2, name: 0b10 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.binvi
+
+Synopsis::
+Single bit invert (immediate)
+
+Mnemonic::
+```
+tio.binvi{bsel}.{x,y}{x,y}
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b000 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 3, name: 0b110 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b000 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 6, name: 'shamt' },
+ { bits: 2, name: 0b11 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.bexti.xy
+
+Synopsis::
+Single bit extract from IO register (immediate)
+
+Mnemonic::
+```
+tio.bexti{bsel}.xy rd, ios1, shamt
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0b000 },
+ { bits: 5, name: 'ios1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 5, name: 0b01000 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0b000 },
+ { bits: 5, name: 'ios1' },
+ { bits: 6, name: 'shamt' },
+ { bits: 4, name: 0b0100 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+NOTE: on rv64 `tio.bexti` can reach the upper 32 bits in addition to `tio.bsb*` instructions
+
+==== TODO: inverted single bit constant
+
+We can achieve this in 2 instructions:
+```
+bseti a0, zero, shamt
+tio.xnor iod, zero, a0
+```
+
+NOTE: Normally `xori rd, rs1, -1` is used for inversion.
 
 === XTightlyCoupledIOsbbr
 

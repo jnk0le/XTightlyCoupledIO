@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.12.1
+:appversion: 0.12.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -331,6 +331,8 @@ Encoding (RV32, RV64)::
 ]}
 ....
 
+NOTE: instruction proposed as Zce 32bit candidate
+
 ==== tio.bsbclri (.x)
 
 Synopsis::
@@ -353,7 +355,9 @@ Encoding (RV32, RV64)::
  { bits: 7, name: 'imm[12|10:5]' },
 ]}
 ....
-	
+
+NOTE: instruction proposed as Zce 32bit candidate
+
 === XTightlyCoupledIOa
 
 general IO alu, instructions

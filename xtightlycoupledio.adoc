@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.14.1
+:appversion: 0.14.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -25,7 +25,7 @@ Changes in prior versions are not versioned properly and not tracked in revision
 
 Document is written in a way that reduces the duplications as those are hard to maintain.
 
-There was no attempt at optimizing instruction decoding, (or packing them in less opcodes) 
+There was no attempt at optimizing instruction encodings, (or packing them in less opcodes) 
 other than sticking close to canonical risc-v encodings, yet.
 
 The spec can be donated (FOSS org??), if it allows it to undergo more comparative studies and proceed to "standardization" 

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.16.3
+:appversion: 0.16.4
 :toc:
 :toclevels: 4
 :sectnums:
@@ -46,7 +46,7 @@ And if we are talking about proprietary extensions, they are usually:
 documented or not documented at all (let's guess what custom instructions the ch32v003 or ch32v307 implements...)
 - They also focus on gpio too much, leaving out the most frequently used or most critical peripherals. 
 
-NOTE: In modern microcontroller codebases the gpio tends to be accessed less frequently
+NOTE: In modern microcontroller codebases the gpio tends to become accessed less frequently
 than other peripherals. And it's due to a simple reason - if the peripherals are 
 present, they no longer have to be bit-banged by gpio as it was done in the past.
 

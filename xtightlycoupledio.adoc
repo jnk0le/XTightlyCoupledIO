@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.14.4
+:appversion: 0.14.5
 :toc:
 :toclevels: 4
 :sectnums:
@@ -440,6 +440,54 @@ Encoding (RV32, RV64)::
 
 NOTE: `lui` + `tio.addi` pair can be used to write any 32bit constant into IO register.
 
+==== tio.add
+
+==== tio.sub
+
+==== tio.and
+
+==== tio.or
+
+==== tio.xor
+
+==== tio.sll
+
+==== tio.srl
+
+==== tio.sra
+
+==== tio.slt.xy
+
+==== tio.sltu.xy
+
+=== XTightlyCoupledIObb
+
+general IO bitmanip, instructions
+
+The `.xx` form of those instructions is reserved
+
+NOTE: the .yy form can be further limited to target only one IO register
+for more efficient implementations
+
+==== tio.andn
+
+==== tio.orn
+
+==== tio.xnor
+
+==== tio.rev8
+
+==== tio.min
+
+==== tio.minu
+
+==== tio.max
+
+==== tio.maxu
+
+
+
+
 === XTightlyCoupledIOsb
 
 single bit IO access instructions
@@ -632,6 +680,10 @@ tio.xnor iod, zero, a0
 ```
 
 NOTE: Normally `xori rd, rs1, -1` is used for inversion.
+
+==== TODO: reflect rest of the Zbs??
+
+NOTE: probably not usefull, can be added for completness
 
 === XTightlyCoupledIOsbbr
 

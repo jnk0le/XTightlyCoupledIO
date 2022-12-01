@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.16.2
+:appversion: 0.16.3
 :toc:
 :toclevels: 4
 :sectnums:
@@ -218,6 +218,8 @@ Not reflecting actual memory mapped registers.
 Core vs DMA is a likely scenario. +
 In C the above RMW operation is non atomic. The tio isntructions can do atomic RMW what 
 could lead to abuse of observed behaviour (bugs when porting from tio to non-tio mcu)
+
+==== TODO: memory model of IO access
 
 === automatic mapping of memory mapped registers to tightly coupled registers
 

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.16.1
+:appversion: 0.16.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -1363,6 +1363,11 @@ F or Zfinx
 
 ==== TODO: double precision and rv64
 //need to reduce duplication
+
+==== TODO: float to int
+
+potentially problematic to implement, as the float pipe 
+is usually longer than integer one
 
 [appendix]
 = code samples

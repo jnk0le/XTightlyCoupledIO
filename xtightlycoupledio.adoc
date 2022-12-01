@@ -771,6 +771,50 @@ Encoding (RV32, RV64)::
 ]}
 ....
 
+==== tio.sgt.xy
+
+Mnemonic::
+```
+tio.sgt{bsel}.xy rd, ios1, rs2
+```
+
+Encoding (RV32, RV64)::
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b011 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 5, name: 0b01010 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+NOTE: normally a pseudoinstrution by swapping rs1 and rs2 operands of slt instruction
+
+==== tio.sgtu.xy
+
+Mnemonic::
+```
+tio.sgtu{bsel}.xy rd, ios1, rs2
+```
+
+Encoding (RV32, RV64)::
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b011 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 5, name: 0b01011 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+NOTE: normally a pseudoinstrution by swapping rs1 and rs2 operands of sltu instruction
+
 === XTightlyCoupledIObb
 
 general IO bitmanip, instructions
@@ -955,7 +999,6 @@ Encoding (RV32, RV64)::
  { bits: 2, name: 'bsel' },
 ]}
 ....
-
 
 === XTightlyCoupledIOsb
 
@@ -1365,6 +1408,10 @@ FSD - 101 00
 FLDSP - 001 10
 
 FSDSP allocated by Zce
+
+last custom 2
+f3 { bits: 3, name: 0b011 },
+f7 { bits: 5, name: 0b01 011 },
 
 [bibliography]
 = Bibliography

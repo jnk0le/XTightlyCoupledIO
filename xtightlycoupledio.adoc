@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.16.0
+:appversion: 0.16.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -444,7 +444,7 @@ NOTE: `lui` + `tio.addi` pair can be used to write any 32bit constant into IO re
 
 Mnemonic::
 ```
-tio.add{bsel}.{x,y}{x,y}
+tio.add{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
@@ -466,7 +466,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.sub{bsel}.{x,y}{x,y}
+tio.sub{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
@@ -492,7 +492,7 @@ not sure if actually usefull
 
 Mnemonic::
 ```
-tio.and{bsel}.{x,y}{x,y}
+tio.and{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
@@ -514,7 +514,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.or{bsel}.{x,y}{x,y}
+tio.or{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
@@ -536,7 +536,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.xor{bsel}.{x,y}{x,y}
+tio.xor{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
@@ -558,7 +558,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.sll{bsel}.{x,y}{x,y}
+tio.sll{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
@@ -580,7 +580,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.slli{bsel}.{x,y}{x,y}
+tio.slli{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
@@ -617,7 +617,7 @@ Encoding (RV64)::
 
 Mnemonic::
 ```
-tio.srl{bsel}.{x,y}{x,y}
+tio.srl{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
@@ -639,7 +639,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.srli{bsel}.{x,y}{x,y}
+tio.srli{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
@@ -676,7 +676,7 @@ Encoding (RV64)::
 
 Mnemonic::
 ```
-tio.sra{bsel}.{x,y}{x,y}
+tio.sra{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
@@ -698,7 +698,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.srli{bsel}.{x,y}{x,y}
+tio.srli{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
@@ -735,7 +735,7 @@ Encoding (RV64)::
 
 Mnemonic::
 ```
-tio.slt{bsel}.xy
+tio.slt{bsel}.xy rd, ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
@@ -755,7 +755,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.sltu{bsel}.xy
+tio.sltu{bsel}.xy rd, ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
@@ -784,7 +784,7 @@ for more efficient implementations
 
 Mnemonic::
 ```
-tio.andn{bsel}.{x,y}{x,y}
+tio.andn{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
@@ -806,7 +806,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.orn{bsel}.{x,y}{x,y}
+tio.orn{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
@@ -828,7 +828,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.xnor{bsel}.{x,y}{x,y}
+tio.xnor{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
@@ -850,7 +850,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.rev8{bsel}.{x,y}{x,y}
+tio.rev8{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
@@ -872,7 +872,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.min{bsel}.{x,y}{x,y}
+tio.min{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
@@ -894,7 +894,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.minu{bsel}.{x,y}{x,y}
+tio.minu{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
@@ -916,7 +916,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.max{bsel}.{x,y}{x,y}
+tio.max{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
@@ -938,7 +938,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.max{bsel}.{x,y}{x,y}
+tio.max{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
@@ -973,7 +973,7 @@ Single bit set (immediate)
 
 Mnemonic::
 ```
-tio.bseti{bsel}.{x,y}{x,y}
+tio.bseti{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
@@ -1017,7 +1017,7 @@ Single bit clear (immediate)
 
 Mnemonic::
 ```
-tio.bclri{bsel}.{x,y}{x,y}
+tio.bclri{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
@@ -1059,7 +1059,7 @@ Single bit invert (immediate)
 
 Mnemonic::
 ```
-tio.binvi{bsel}.{x,y}{x,y}
+tio.binvi{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::

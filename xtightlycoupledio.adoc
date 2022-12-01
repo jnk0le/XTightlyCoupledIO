@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.15.0
+:appversion: 0.16.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -576,6 +576,43 @@ Encoding (RV32, RV64)::
 ]}
 ....
 
+==== tio.slli
+
+Mnemonic::
+```
+tio.slli{bsel}.{x,y}{x,y}
+```
+
+Encoding (RV32)::
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b100 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 3, name: 0b000 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b100 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 6, name: 'shamt' },
+ { bits: 2, name: 0b00 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
 ==== tio.srl
 
 Mnemonic::
@@ -598,6 +635,43 @@ Encoding (RV32, RV64)::
 ]}
 ....
 
+==== tio.srli
+
+Mnemonic::
+```
+tio.srli{bsel}.{x,y}{x,y}
+```
+
+Encoding (RV32)::
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b100 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 3, name: 0b010 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b100 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 6, name: 'shamt' },
+ { bits: 2, name: 0b01 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
 ==== tio.sra
 
 Mnemonic::
@@ -614,6 +688,43 @@ Encoding (RV32, RV64)::
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
  { bits: 3, name: 0b111 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.srai
+
+Mnemonic::
+```
+tio.srli{bsel}.{x,y}{x,y}
+```
+
+Encoding (RV32)::
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b100 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 3, name: 0b100 },
+ { bits: 1, name: 'rsm' },
+ { bits: 1, name: 'rdm' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0b100 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 6, name: 'shamt' },
+ { bits: 2, name: 0b10 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -659,11 +770,6 @@ Encoding (RV32, RV64)::
  { bits: 2, name: 'bsel' },
 ]}
 ....
-
-==== TODO: slli srli srai
-
-//f3 0b100
-
 
 === XTightlyCoupledIObb
 

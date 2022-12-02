@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.18.2
+:appversion: 0.18.4
 :toc:
 :toclevels: 4
 :sectnums:
@@ -79,7 +79,7 @@ Single bit instructions consists of:
 - `sbrc` and `sbrs` that can sip one instruction if bit in general purpose register is set/cleared
 
 There are also `gpior` registers that serve as a scratch registers for e.g. global variables/flags. 
-Has to be used explicitly in source code.
+Those have to be used explicitly in source code.
 
 .everything looks clean and nice but...
 
@@ -171,7 +171,9 @@ NOTE: still available in first alternative approach
 
 ==== IO with multiply/multiply-accumulate
 
-non deterministic, sometimes multi cycle
+Sometimes multi cycle, non deterministic.
+
+Potentially problematic to implement as the multiplier can span more pipeline stages than regular ALUs.
 
 [[chapter_title]]
 == programmers model
@@ -244,6 +246,36 @@ NOTE: Those files could be used to provide named aliases in debuggers/decompiler
 ==== TODO: define the iomapping file format
 
 ==== TODO: named aliases for use in assembly
+
+==== TODO: IO remap detection in assembly 
+
+Even though compilers can automatically do a remap in compiled code, the assembly has
+to explicitly use the dedicated IO instructions leading to unportable code.
+
+NOTE: in theory load/store with absolute addressing mode can indeed be relaxed
+into `in` and `out` instructions, but risc-v doesn't do an absolute addressing like avr8
+
+In avr world portability of IO accesing assembly code was done like:
+
+```
+#if defined(atmega1234)||defined(atmega12345)
+
+#define RDR_REGISTER_IN_IO
+#define CONTROL1_REGISTER_IN_IO
+#define CONTROL1_REGISTER_IN_LOWER_IO
+
+#elif defined(atmega123456)
+//...
+```
+
+And appropriately spam #ifdef's in the actual code.
+
+As can be seen, each new device has to be added to the config header manually.
+
+Therefore we need a way to discover wether given peripheral register is remapped 
+into IO space, and use this information in e.g. #ifdefs
+
+NOTE: assembly will stay messy with this anyway, especially when number of used register needs to be kept low
 
 === assembly syntax
 

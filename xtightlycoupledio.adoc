@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.18.0
+:appversion: 0.18.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -1414,6 +1414,8 @@ Encoding (RV64)::
 ]}
 ....
 
+NOTE: instruction is equivalent to `tio.slli` + `srli` sequence
+
 ==== tio.sbfextracti.xy
 
 Synopsis::
@@ -1452,6 +1454,8 @@ Encoding (RV64)::
  { bits: 2, name: 'bsel' },
 ]}
 ....
+
+NOTE: instruction is equivalent to `tio.slli` + `srai` sequence
 
 === XTightlyCoupledIOcm
 

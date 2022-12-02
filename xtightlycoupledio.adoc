@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.17.0
+:appversion: 0.18.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -407,6 +407,84 @@ Encoding (RV64)::
 NOTE: due to encoding constraints only destructive form is provided
 
 NOTE: instruction was proposed for P extension as there are many more rd destructive ones 
+
+==== tio.bfextracti.xx
+
+Synopsis::
+extract bitfield from register
+
+Mnemonic::
+```
+tio.sbfextracti.xx rd, rs1, shamt, len
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0b100 },
+ { bits: 5, name: 'rs1' },
+ { bits: 5, name: 'offset' },
+ { bits: 5, name: 'len' },
+ { bits: 2, name: 0b00 },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0b100 },
+ { bits: 5, name: 'rs1' },
+ { bits: 6, name: 'offset' },
+ { bits: 6, name: 'len' },
+]}
+....
+
+NOTE: instruction is equivalent to `slli` + `srli` sequence
+
+==== tio.sbfextracti.xx
+
+Synopsis::
+extract and sign extend bitfield from register
+
+Mnemonic::
+```
+tio.sbfextracti.xx rd, rs1, shamt, len
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0b101 },
+ { bits: 5, name: 'rs1' },
+ { bits: 5, name: 'offset' },
+ { bits: 5, name: 'len' },
+ { bits: 2, name: 0b00 },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0b101 },
+ { bits: 5, name: 'rs1' },
+ { bits: 6, name: 'offset' },
+ { bits: 6, name: 'len' },
+]}
+....
+
+NOTE: instruction is equivalent to `slli` + `srai` sequence
 
 === XTightlyCoupledIOa
 
@@ -1494,8 +1572,8 @@ FLDSP - 001 10
 
 FSDSP allocated by Zce
 
-last custom 2
-f3 { bits: 3, name: 0b011 },
+last custom 2 op
+f3 { bits: 3, name: 0b011 },  101
 f7 { bits: 5, name: 0b01 011 },
 
 [bibliography]

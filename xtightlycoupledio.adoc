@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.18.1
+:appversion: 0.18.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -374,7 +374,7 @@ Destructive bitfield insert into register (immediate)
 
 Mnemonic::
 ```
-tio.bfinserti.xx rd, rs1, shamt, len
+tio.bfinserti.xx rd, rs1, offset, len
 ```
 
 Encoding (RV32)::
@@ -415,7 +415,7 @@ extract bitfield from register
 
 Mnemonic::
 ```
-tio.sbfextracti.xx rd, rs1, shamt, len
+tio.sbfextracti.xx rd, rs1, offset, len
 ```
 
 Encoding (RV32)::
@@ -454,7 +454,7 @@ extract and sign extend bitfield from register
 
 Mnemonic::
 ```
-tio.sbfextracti.xx rd, rs1, shamt, len
+tio.sbfextracti.xx rd, rs1, offset, len
 ```
 
 Encoding (RV32)::
@@ -1382,7 +1382,7 @@ extract bitfield from IO register
 
 Mnemonic::
 ```
-tio.bfextracti{bsel}.xy
+tio.bfextracti{bsel}.xy rd, ios1, offset, len
 ```
 
 Encoding (RV32)::
@@ -1423,7 +1423,7 @@ extract and sign extend bitfield from IO register
 
 Mnemonic::
 ```
-tio.sbfextracti{bsel}.xy
+tio.sbfextracti{bsel}.xy rd, ios1, offset, len
 ```
 
 Encoding (RV32)::

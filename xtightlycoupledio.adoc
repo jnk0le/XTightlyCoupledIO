@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.18.4
+:appversion: 0.18.5
 :toc:
 :toclevels: 4
 :sectnums:
@@ -173,7 +173,8 @@ NOTE: still available in first alternative approach
 
 Sometimes multi cycle, non deterministic.
 
-Potentially problematic to implement as the multiplier can span more pipeline stages than regular ALUs.
+Even single cycle implementations are potentially problematic to implement as 
+the multiplier can span more pipeline stages than regular ALUs.
 
 [[chapter_title]]
 == programmers model

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.4
+:appversion: 0.19.5
 :toc:
 :toclevels: 4
 :sectnums:
@@ -30,7 +30,6 @@ other than sticking close to canonical risc-v encodings, yet.
 
 The spec can be donated (FOSS org??), if it allows it to undergo more comparative studies and proceed to "standardization" 
 
-[[chapter_title]]
 == Introduction
 
 The scope of XTightlyCoupledIO extension is to reduce code size, increase performance
@@ -176,7 +175,6 @@ Sometimes multi cycle, non deterministic.
 Even single cycle implementations are potentially problematic to implement as 
 the multiplier can span more pipeline stages than regular ALUs.
 
-[[chapter_title]]
 == programmers model
 
 The XTightlyCoupledIO extension adds 4 banks of 32 XLEN sized IO registers each.

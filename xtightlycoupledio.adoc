@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.2
+:appversion: 0.19.3
 :toc:
 :toclevels: 4
 :sectnums:
@@ -1589,6 +1589,8 @@ Encoding (RV32, RV64)::
 
 ....
 
+NOTE: only bottom 32 bits are accessible
+
 ==== tio.cm.bclri0.yy
 
 Synopsis::
@@ -1611,6 +1613,8 @@ Encoding (RV32, RV64)::
 ],config:{bits:16}}
 
 ....
+
+NOTE: only bottom 32 bits are accessible
 
 === XTightlyCoupledIOfcvt
 

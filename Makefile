@@ -1,5 +1,5 @@
 HEADER_SOURCE := xtightlycoupledio.adoc
-PDF_RESULT := example.pdf
+PDF_RESULT := XTightlyCoupledIO.pdf
 
 SOURCES := $(HEADER_SOURCE)
 

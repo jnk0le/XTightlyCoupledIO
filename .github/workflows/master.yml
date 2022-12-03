@@ -26,7 +26,7 @@ jobs:
       BUNDLE_GEMFILE: ${{ github.workspace }}/dependencies/Gemfile
       BUNDLE_BIN: ${{ github.workspace }}/bin
       NPM_PACKAGE_FOLDER: ${{ github.workspace }}/dependencies
-      PDF_RESULT: example.pdf
+      PDF_RESULT: XTightlyCoupledIO.pdf
     steps:
     - uses: actions/checkout@v2
     - name: Install Ubuntu packages
@@ -60,7 +60,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
 #should this actually be result.pdf????
-        name: example.pdf
+        name: XTightlyCoupledIO.pdf
         path: ${{ env.PDF_RESULT }}
         retention-days: 7
     - name: Create Release
@@ -82,6 +82,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./example.pdf
-        asset_name: example.pdf
+        asset_path: ./XTightlyCoupledIO.pdf
+        asset_name: XTightlyCoupledIO.pdf
         asset_content_type: application/pdf

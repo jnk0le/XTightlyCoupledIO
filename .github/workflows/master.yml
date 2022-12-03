@@ -64,7 +64,7 @@ jobs:
     - name: Archive PDF result
       uses: actions/upload-artifact@v2
       with:
-#??????
+#should this actually be result.pdf????
         name: example.pdf
         path: ${{ env.PDF_RESULT }}
         retention-days: 7
@@ -77,9 +77,8 @@ jobs:
       with:
 #??????
 # ${{ github.ref_name }} will prevent all pushes with weird errors
-# Tag ${{ github.ref_name }} causes
-# Error: Validation Failed: {"resource":"Release","code":"custom","field":"tag_name","message":"tag_name is not a valid tag"}, {"resource":"Release","code":"custom","field":"tag_name","message":"tag_name is not well-formed"}, {"resource":"Release","code":"custom","message":"Published releases must have a valid tag"}
-        tag_name: ${{ github.ref_name }}
+# Tag ${{ github.ref_name }} causes: Error: Validation Failed: 
+        tag_name: Tag ${{ github.ref_name }}
         release_name: Release ${{ github.ref_name }}
         draft: false
         prerelease: true

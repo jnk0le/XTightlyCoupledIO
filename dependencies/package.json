@@ -1,0 +1,8 @@
+ 7 lines (7 sloc) 98 Bytes
+{
+  "name": "local",
+  "version": "0.0.1",
+  "dependencies": {
+    "wavedrom-cli": "^2.6.8"
+  }
+}

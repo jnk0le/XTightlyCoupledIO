@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.7
+:appversion: 0.19.8
 :toc:
 :toclevels: 4
 :sectnums:
@@ -60,7 +60,7 @@ My observation of frequent peripheral patterns are:
 - register content is immediately converted to float for computation
 
 NOTE: In C/C++ the peripheral registers are marked as `volatile` which prevents many 
-possible optimizations. The "side effecting" acceses must follow the source even though a 
+possible optimizations. The "side effecting" acceses must follow what was written in the source code even though a 
 single read + 2 single bit branches could be actually optimized into just two `tio.bsb*.y` instructions.
 
 === prior art

@@ -22,7 +22,6 @@ jobs:
     runs-on: ubuntu-latest
 
 #???????
-    run:
       working-directory: ./
 
     env:

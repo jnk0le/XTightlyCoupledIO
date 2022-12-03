@@ -14,6 +14,5 @@ $(PDF_RESULT): $(SOURCES)
     --failure-level=ERROR \
     --require=asciidoctor-bibtex \
     --require=asciidoctor-diagram \
-    --require=asciidoctor-mathematical \
     --out-file=$@ \
     $(HEADER_SOURCE)

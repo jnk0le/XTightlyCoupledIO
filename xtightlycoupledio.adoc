@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.8
+:appversion: 0.19.9
 :toc:
 :toclevels: 4
 :sectnums:
@@ -73,7 +73,7 @@ All registers are available through IO address space and memory addres space.
 
 Single bit instructions consists of:
 
-- `sbi` and `cbi` for setting and clearing bits
+- `sbi` and `cbi` for setting and clearing IO bits
 - `sbis` and `sbic` that can sip one instruction if IO bit is set/cleared
 - `sbrc` and `sbrs` that can sip one instruction if bit in general purpose register is set/cleared
 

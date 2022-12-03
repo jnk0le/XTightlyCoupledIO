@@ -75,7 +75,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: "name for tag"
-        release_name: Release "name for release"
+        release_name: "name for release"
         draft: false
         prerelease: true
     - name: Upload Release Asset

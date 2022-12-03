@@ -8,6 +8,5 @@ all: $(PDF_RESULT)
 .PHONY: $(PDF_RESULT)
 $(PDF_RESULT): $(SOURCES)
 	asciidoctor-pdf \
-	--attribute=mathematical-format=svg \
     --out-file=$@ \
     $(HEADER_SOURCE)

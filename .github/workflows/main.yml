@@ -78,9 +78,8 @@ jobs:
 #??????
 # ${{ github.ref_name }} will prevent all pushes with weird errors
 # Tag ${{ github.ref_name }} causes
-# Validation Failed: {"resource":"Release","code":"custom","field":"tag_name","message":"tag_name is not a valid tag"}, {"resource":"Release","code":"custom","field":"tag_name","message":"tag_name is not well-formed"}, {"resource":"Release","code":"custom","message":"Published releases must have a valid tag"}
-#
-        tag_name: Release ${{ github.ref_name }}
+# Error: Validation Failed: {"resource":"Release","code":"custom","field":"tag_name","message":"tag_name is not a valid tag"}, {"resource":"Release","code":"custom","field":"tag_name","message":"tag_name is not well-formed"}, {"resource":"Release","code":"custom","message":"Published releases must have a valid tag"}
+        tag_name: ${{ github.ref_name }}
         release_name: Release ${{ github.ref_name }}
         draft: false
         prerelease: true

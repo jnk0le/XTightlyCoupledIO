@@ -21,6 +21,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+#???????
+    run:
+      working-directory: ./aaa
+
     env:
       APT_PACKAGES_FILE: ${{ github.workspace }}/dependencies/apt_packages.txt
       BUNDLE_GEMFILE: ${{ github.workspace }}/dependencies/Gemfile

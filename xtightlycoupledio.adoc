@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.18.7
+:appversion: 0.19.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -1517,7 +1517,100 @@ NOTE: instruction is equivalent to `tio.slli` + `srai` sequence
 
 implemented similarly to Zcm* extenaions, incompatible with Zcd
 
+==== tio.cm.mv.yx
 
+Synopsis::
+Move into IO register
+
+Mnemonic::
+```
+tio.cm.mv{bsel}.yx iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits:  2, name: 0b00, attr: ['C0'] },
+ { bits:  5, name: 'rs2' },
+ { bits:  5, name: 'iod' },
+ { bits:  1, name: 'bsel' },
+ { bits:  3, name: 0b101, attr: ['FSD'] },
+],config:{bits:16}}
+
+....
+
+NOTE: not symmetric with canonical move
+
+==== tio.cm.mv.xy
+
+Synopsis::
+Move from IO register
+
+Mnemonic::
+```
+tio.cm.mv{bsel}.xy rd, ios1
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits:  2, name: 0b10, attr: ['C2'] },
+ { bits:  5, name: 'ios1' },
+ { bits:  5, name: 'rd' },
+ { bits:  1, name: 'bsel' },
+ { bits:  3, name: 0b001, attr: ['FLDSP'] },
+],config:{bits:16}}
+....
+
+NOTE: ios1 in rs2 position, the low bits store only rd' in C extension, maybe swap?
+
+==== tio.cm.bseti0.yy
+
+Synopsis::
+Set bit in IO register (immediate)
+
+Mnemonic::
+```
+tio.cm.bseti0.yy iod, shamt
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits:  2, name: 0b00, attr: ['C0'] },
+ { bits:  5, name: 'shamt' },
+ { bits:  5, name: 'iod' },
+ { bits:  1, name: '0' },
+ { bits:  3, name: 0b001, attr: ['FLD'] },
+],config:{bits:16}}
+
+....
+
+==== tio.cm.bclri0.yy
+
+Synopsis::
+Clear bit in IO register (immediate)
+
+Mnemonic::
+```
+tio.cm.bclri0.yy iod, shamt
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits:  2, name: 0b00, attr: ['C0'] },
+ { bits:  5, name: 'shamt' },
+ { bits:  5, name: 'iod' },
+ { bits:  1, name: '1' },
+ { bits:  3, name: 0b001, attr: ['FLD'] },
+],config:{bits:16}}
+
+....
 
 === XTightlyCoupledIOfcvt
 

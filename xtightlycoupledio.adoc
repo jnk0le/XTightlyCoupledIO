@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.6
+:appversion: 0.19.7
 :toc:
 :toclevels: 4
 :sectnums:
@@ -311,16 +311,16 @@ and {rdm} and {rsm} are substituted with one of the following letter.
 - s - floating point reg
 - y - io reg
 
-//put it in separate section??
-When {rdm} and {rsm} are present in instruction encodings, they control 
-`rd` and `rs1` fields. If high the IO register in selected bank is targeted
-
 Register specifiers use the same letter.
 
 ```
 tio.sbseti3.yy y11, y11, 13 // set bit 13 in io 11 register in bank 3
 tio.sbseti2.yx y22, zero, 17 // write (1<<17) to io 22 register in bank 2
 ```
+
+//put it in separate section??
+When {rdm} and {rsm} are present in instruction encodings, they control 
+`rd` and `rs1` fields. If high the IO register in selected bank is targeted
 
 NOTE: letter y was picked totally arbitrarily as it's single letter and doesn't have conflicts
 

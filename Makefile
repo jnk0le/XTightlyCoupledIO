@@ -1,0 +1,1 @@
+PDF_RESULT := example.pdf

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.0
+:appversion: 0.19.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -1685,51 +1685,6 @@ is usually longer than integer one
 [appendix]
 = code samples
 
-
-[appendix]
-= test
-
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
- { bits: 5, name: 'rd' },
- { bits: 3, name: 0x0, attr: ['yyy'] },
- { bits: 5, name: 'rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 7, name: 0x01, attr: ['aaa'] },
-]}
-....
-
-costom 0 - 0b00 010 11 - 0x0b
-
-custom 1 - 0b01 010 11 - 0x2b
-
-custom 2 - 0b10 110 11 - 0x5b
-
-custom 3 - 0b11 110 11 - 0x7b
-
-
-[wavedrom, , svg]
-....
-{reg:[
- { bits:  2, name: 0x0, attr: ['C0'] },
- { bits:  11, name: '', attr: ['FLD'] },
- { bits:  3, name: 0b001, attr: ['FUNCT3'] },
-],config:{bits:16}}
-....
-
-FSD - 101 00
-
-FLDSP - 001 10
-
-FSDSP allocated by Zce
-
-last custom 2 op
-f3 { bits: 3, name: 0b011 },  101
-f7 { bits: 5, name: 0b01 011 },
 
 [bibliography]
 = Bibliography

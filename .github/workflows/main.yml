@@ -22,7 +22,9 @@ jobs:
     runs-on: ubuntu-latest
 
 #???????
-      working-directory: ./
+    defaults:
+      run:
+        working-directory: ./aa
 
     env:
       APT_PACKAGES_FILE: ${{ github.workspace }}/dependencies/apt_packages.txt

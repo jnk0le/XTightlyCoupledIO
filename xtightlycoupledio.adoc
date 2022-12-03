@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.3
+:appversion: 0.19.4
 :toc:
 :toclevels: 4
 :sectnums:
@@ -1687,10 +1687,10 @@ potentially problematic to implement, as the float pipe
 is usually longer than integer one
 
 [appendix]
-= code samples
+== code samples
 
 
 [bibliography]
-= Bibliography
+== Bibliography
 
 * [[[spracw5a, 1]]] https://www.ti.com/lit/an/spracw5a/spracw5a.pdf

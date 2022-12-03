@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.1
+:appversion: 0.19.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -162,12 +162,12 @@ or content from pre generated lookup tables
 
 === omitted instructions
 
+NOTE: still available in first alternative approach
+
 ==== load to IO/store from IO register
 
 Useful to directly store or load IO content to/from memory without processing.
 It is also non deterministic and can trap due to e.g. alignment or pmp restrictions, violating atomicity guarantee.
-
-NOTE: still available in first alternative approach
 
 ==== IO with multiply/multiply-accumulate
 

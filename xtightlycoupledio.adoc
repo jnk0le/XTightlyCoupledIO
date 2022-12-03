@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.18.5
+:appversion: 0.18.6
 :toc:
 :toclevels: 4
 :sectnums:
@@ -276,7 +276,30 @@ As can be seen, each new device has to be added to the config header manually.
 Therefore we need a way to discover wether given peripheral register is remapped 
 into IO space, and use this information in e.g. #ifdefs
 
-NOTE: assembly will stay messy with this anyway, especially when number of used register needs to be kept low
+NOTE: assembly will stay messy with this anyway, especially when number of used 
+register needs to be kept low in default inline interrupts
+
+==== TODO: automatic mapping of globals to IO scratch registers
+
+Apart from the peripherals, the IO address space can hold avr8 like
+scratch registers. Those can be used to store the global variables/flags.
+
+it can be:
+
+* used explicitly like in avr8
+** higly unportable
+** falls into "premature optimization" category
+** how many avr projects using `gpior` (aka `GPIO` aka `GPR`) did you see so far?
+
+* automatically mapped to global variables/flags
+** allows those scratch regs to be actually used
+** no longer relaxable to gp-rel load/stores
+
+* used with explicit attribute e.g. `\\__attribute__\((mapto_ioscratch("bsb_accessible,bool_mergable,1cycle")))`
+** usefull for critical inner control loop globals
+** can overide default cost function of above option
+** variable is not forced into scratch register if specific criteria is not met
+** no longer relaxable to gp-rel load/stores
 
 === assembly syntax
 

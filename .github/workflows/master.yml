@@ -21,7 +21,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-#???????
     defaults:
       run:
         working-directory: ./
@@ -75,10 +74,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-#??????
-# ${{ github.ref_name }} will prevent all pushes with weird errors
-# Tag ${{ github.ref_name }} causes: Error: Validation Failed: 
-        tag_name: ${{ github.ref_name }}
+        tag_name: Tag ${{ github.ref_name }}
         release_name: Release ${{ github.ref_name }}
         draft: false
         prerelease: true

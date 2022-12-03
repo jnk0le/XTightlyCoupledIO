@@ -23,7 +23,7 @@ jobs:
 
 #???????
     run:
-      working-directory: ./aaa
+      working-directory: ./
 
     env:
       APT_PACKAGES_FILE: ${{ github.workspace }}/dependencies/apt_packages.txt

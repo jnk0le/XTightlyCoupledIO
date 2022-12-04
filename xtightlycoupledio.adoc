@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.10
+:appversion: 0.19.11
 :toc:
 :toclevels: 4
 :sectnums:
@@ -175,6 +175,8 @@ Sometimes multi cycle, non deterministic.
 
 Even single cycle implementations are potentially problematic to implement as 
 the multiplier can span more pipeline stages than regular ALUs.
+
+NOTE: `tio.mul.xy` should still be quite possible, if the `mulh` is necessary the `tio.mul` becomes useless 
 
 == programmers model
 

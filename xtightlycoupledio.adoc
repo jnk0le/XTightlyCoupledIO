@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.9
+:appversion: 0.19.10
 :toc:
 :toclevels: 4
 :sectnums:
@@ -114,10 +114,11 @@ the upper part is populated only by the "CPU"
 
 ==== ti PRU (in beaglebone sbcs)
 
-r30 gpio output +
-r31 gpio input
+only the GPIO pins are mapped to r30 and r31 register.
 
-special instructions
+special instructions for:
+- set/clear bit
+- branch if bit is set/cleared
 
 ==== ti c2/f2
 

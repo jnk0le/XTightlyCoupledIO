@@ -8,5 +8,6 @@ all: $(PDF_RESULT)
 .PHONY: $(PDF_RESULT)
 $(PDF_RESULT): $(SOURCES)
 	asciidoctor-pdf \
+	--require=asciidoctor-diagram \
     --out-file=$@ \
     $(HEADER_SOURCE)

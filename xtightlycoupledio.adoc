@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.1
+:appversion: 1.0.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -1526,7 +1526,7 @@ NOTE: instruction is equivalent to `tio.slli` + `srai` sequence
 
 === XTightlyCoupledIOcm
 
-implemented similarly to Zcm* extenaions, incompatible with Zcd
+implemented similarly to Zcm* extensions, incompatible with Zcd
 
 ==== tio.cm.mv.yx
 

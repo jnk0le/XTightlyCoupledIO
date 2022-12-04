@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.8
+:appversion: 1.0.9
 :toc:
 :toclevels: 4
 :sectnums:
@@ -17,7 +17,8 @@ This document is released under a Creative Commons Attribution 4.0 International
 
 [width="100%",options=header]
 |====================================================================================
-|Version  | change
+|Version | change
+| v1.0.9 | inverted single bit in one instruction
 | v1.0.8 | sync bsel description
 | v1.0.7 | fixed funct3 encodings of extract instructions
 | v1.0.6 | removed redundant note, improved spelling
@@ -1341,7 +1342,13 @@ NOTE: on rv64 `tio.bexti` can reach the upper 32 bits in addition to `tio.bsb*` 
 
 ==== TODO: inverted single bit constant
 
-We can achieve this in 2 instructions:
+Bottom 11 bits can be done with single instruction:
+
+```
+tio.addi iod, zero, (~(1<<pos))
+```
+
+Otherwise we can achieve this in 2 instructions:
 
 ```
 lui a0, %hi(~(1<<pos))

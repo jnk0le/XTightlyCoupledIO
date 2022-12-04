@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.3
+:appversion: 1.0.4
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 |Version  | change
+| v1.0.4 | fixed wavedrom rendering
 | v1.0.3 | setup revision history table
 | v1.0.2 | typo fix
 | v1.0.1 | extra text about heavy constants
@@ -408,7 +409,7 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
  { bits: 5, name: 'imm[4:1|11]' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'shamt' },
  { bits: 7, name: 'imm[12|10:5]' },
@@ -433,7 +434,7 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
  { bits: 5, name: 'imm[4:1|11]' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'shamt' },
  { bits: 7, name: 'imm[12|10:5]' },
@@ -458,7 +459,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-0'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -472,7 +473,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-0'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -499,11 +500,11 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
- { bits: 2, name: 0b00 },
+ { bits: 2, name: 0x0 },
 ]}
 ....
 
@@ -513,7 +514,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -538,11 +539,11 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b101 },
+ { bits: 3, name: 0x5 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
- { bits: 2, name: 0b00 },
+ { bits: 2, name: 0x0 },
 ]}
 ....
 
@@ -552,7 +553,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b101 },
+ { bits: 3, name: 0x5 },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -586,7 +587,7 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod' },
- { bits: 2, name: 0b00 },
+ { bits: 2, name: 0x0 },
  { bits: 1, name: 'bsel' },
  { bits: 5, name: 'rs1' },
  { bits: 12, name: 'imm[11:0]' },
@@ -607,10 +608,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -629,10 +630,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -655,10 +656,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -677,10 +678,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b011 },
+ { bits: 3, name: 0x3 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -699,10 +700,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -721,10 +722,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b101 },
+ { bits: 3, name: 0x5 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -743,10 +744,10 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -758,10 +759,10 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0b00 },
+ { bits: 2, name: 0x0 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -780,10 +781,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b110 },
+ { bits: 3, name: 0x6 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -802,10 +803,10 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -817,10 +818,10 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0b01 },
+ { bits: 2, name: 0x1 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -839,10 +840,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b111 },
+ { bits: 3, name: 0x7 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -861,10 +862,10 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -876,10 +877,10 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0b10 },
+ { bits: 2, name: 0x2 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -898,10 +899,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 5, name: 0b01000 },
+ { bits: 5, name: 0x8 },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -918,10 +919,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 5, name: 0b01001 },
+ { bits: 5, name: 0x9 },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -938,10 +939,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b011 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 5, name: 0b01010 },
+ { bits: 5, name: 0xa },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -960,10 +961,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b011 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 5, name: 0b01011 },
+ { bits: 5, name: 0xb },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -991,10 +992,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1013,10 +1014,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b011 },
+ { bits: 3, name: 0x3 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1035,10 +1036,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1057,10 +1058,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b101 },
+ { bits: 3, name: 0x5 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1079,10 +1080,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b110 },
+ { bits: 3, name: 0x6 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1101,10 +1102,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b111 },
+ { bits: 3, name: 0x7 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1123,10 +1124,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b011 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1145,10 +1146,10 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b011 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1180,10 +1181,10 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1196,10 +1197,10 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0b01 },
+ { bits: 2, name: 0x1 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1224,10 +1225,10 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0b100 },
+ { bits: 3, name: 0x4 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1240,10 +1241,10 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0b10 },
+ { bits: 2, name: 0x2 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1266,10 +1267,10 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0b110 },
+ { bits: 3, name: 0x6 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1282,10 +1283,10 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0b11 },
+ { bits: 2, name: 0x2 },
  { bits: 1, name: 'rsm' },
  { bits: 1, name: 'rdm' },
  { bits: 2, name: 'bsel' },
@@ -1308,10 +1309,10 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 5, name: 'ios1' },
  { bits: 5, name: 'shamt' },
- { bits: 5, name: 0b01000 },
+ { bits: 5, name: 0x8 },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -1322,10 +1323,10 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 5, name: 'ios1' },
  { bits: 6, name: 'shamt' },
- { bits: 4, name: 0b0100 },
+ { bits: 4, name: 0x4 },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -1372,7 +1373,7 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
  { bits: 5, name: 'imm[4:1|11]' },
- { bits: 2, name: 0b10 },
+ { bits: 2, name: 0x2 },
  { bits: 1, name: 'bsel' },
  { bits: 5, name: 'ios1' },
  { bits: 5, name: 'shamt' },
@@ -1396,7 +1397,7 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
  { bits: 5, name: 'imm[4:1|11]' },
- { bits: 2, name: 0b11 },
+ { bits: 2, name: 0x3 },
  { bits: 1, name: 'bsel' },
  { bits: 5, name: 'ios1' },
  { bits: 5, name: 'shamt' },
@@ -1424,7 +1425,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod' },
- { bits: 3, name: 0b001 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -1438,7 +1439,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod' },
- { bits: 2, name: 0b01 },
+ { bits: 2, name: 0x1 },
  { bits: 1, name: 'bsel' },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
@@ -1466,7 +1467,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b010 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'ios1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -1480,7 +1481,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b10 },
+ { bits: 3, name: 0x2 },
  { bits: 1, name: 'bsel' },
  { bits: 5, name: 'ios1' },
  { bits: 5, name: 'offset' },
@@ -1507,7 +1508,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b011 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -1521,7 +1522,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0b11 },
+ { bits: 3, name: 0x3 },
  { bits: 1, name: 'bsel' },
  { bits: 5, name: 'ios1' },
  { bits: 5, name: 'offset' },
@@ -1550,11 +1551,11 @@ Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits:  2, name: 0b00, attr: ['C0'] },
+ { bits:  2, name: 0x0, attr: ['C0'] },
  { bits:  5, name: 'rs2' },
  { bits:  5, name: 'iod' },
  { bits:  1, name: 'bsel' },
- { bits:  3, name: 0b101, attr: ['FSD'] },
+ { bits:  3, name: 0x5, attr: ['FSD'] },
 ],config:{bits:16}}
 
 ....
@@ -1575,11 +1576,11 @@ Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits:  2, name: 0b10, attr: ['C2'] },
+ { bits:  2, name: 0x2, attr: ['C2'] },
  { bits:  5, name: 'ios1' },
  { bits:  5, name: 'rd' },
  { bits:  1, name: 'bsel' },
- { bits:  3, name: 0b001, attr: ['FLDSP'] },
+ { bits:  3, name: 0x1, attr: ['FLDSP'] },
 ],config:{bits:16}}
 ....
 
@@ -1599,11 +1600,11 @@ Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits:  2, name: 0b00, attr: ['C0'] },
+ { bits:  2, name: 0x0, attr: ['C0'] },
  { bits:  5, name: 'shamt' },
  { bits:  5, name: 'iod' },
  { bits:  1, name: '0' },
- { bits:  3, name: 0b001, attr: ['FLD'] },
+ { bits:  3, name: 0x1, attr: ['FLD'] },
 ],config:{bits:16}}
 
 ....
@@ -1624,11 +1625,11 @@ Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits:  2, name: 0b00, attr: ['C0'] },
+ { bits:  2, name: 0x0, attr: ['C0'] },
  { bits:  5, name: 'shamt' },
  { bits:  5, name: 'iod' },
  { bits:  1, name: '1' },
- { bits:  3, name: 0b001, attr: ['FLD'] },
+ { bits:  3, name: 0x1, attr: ['FLD'] },
 ],config:{bits:16}}
 
 ....
@@ -1659,9 +1660,9 @@ Encoding (RV32, RV64)::
  { bits: 5, name: 'rd' },
  { bits: 3, name: 'rm' },
  { bits: 5, name: 'ios1' },
- { bits: 5, name: 0b00000 },
+ { bits: 5, name: 0x0 },
  { bits: 2, name: 'fmt', attr: ['S'] },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 2, name: 'bsel[1:0]' },
 ]}
 ....
@@ -1687,9 +1688,9 @@ Encoding (RV32, RV64)::
  { bits: 5, name: 'rd' },
  { bits: 3, name: 'rm' },
  { bits: 5, name: 'ios1' },
- { bits: 5, name: 0b00001 },
+ { bits: 5, name: 0x1 },
  { bits: 2, name: 'fmt', attr: ['S'] },
- { bits: 3, name: 0b000 },
+ { bits: 3, name: 0x0 },
  { bits: 2, name: 'bsel[1:0]' },
 ]}
 ....

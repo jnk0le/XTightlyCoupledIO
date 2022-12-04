@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.12
+:appversion: 0.19.13
 :toc:
 :toclevels: 4
 :sectnums:
@@ -171,7 +171,7 @@ NOTE: ABI deviations is not standardized at this moment
 
 === omitted instructions
 
-NOTE: still available in first alternative approach
+NOTE: still available in first alternative approach as well as ABI deviations one
 
 ==== load to IO/store from IO register
 

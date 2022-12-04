@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.9
+:appversion: 1.0.10
 :toc:
 :toclevels: 4
 :sectnums:
@@ -17,7 +17,8 @@ This document is released under a Creative Commons Attribution 4.0 International
 
 [width="100%",options=header]
 |====================================================================================
-|Version | change
+| Version | change
+| v1.0.10 | finally fixed all wavedrom rendering issues
 | v1.0.9 | inverted single bit in one instruction
 | v1.0.8 | sync bsel description
 | v1.0.7 | fixed funct3 encodings of extract instructions
@@ -611,6 +612,7 @@ tio.add{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -633,6 +635,7 @@ tio.sub{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -659,6 +662,7 @@ tio.and{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -681,6 +685,7 @@ tio.or{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -703,6 +708,7 @@ tio.xor{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -725,6 +731,7 @@ tio.sll{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -747,6 +754,7 @@ tio.slli{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -762,6 +770,7 @@ Encoding (RV32)::
 ....
 
 Encoding (RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -784,6 +793,7 @@ tio.srl{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -806,6 +816,7 @@ tio.srli{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -821,6 +832,7 @@ Encoding (RV32)::
 ....
 
 Encoding (RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -843,6 +855,7 @@ tio.sra{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -865,6 +878,7 @@ tio.srli{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -880,6 +894,7 @@ Encoding (RV32)::
 ....
 
 Encoding (RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -902,6 +917,7 @@ tio.slt{bsel}.xy rd, ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -922,6 +938,7 @@ tio.sltu{bsel}.xy rd, ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -942,6 +959,7 @@ tio.sgt{bsel}.xy rd, ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -964,6 +982,7 @@ tio.sgtu{bsel}.xy rd, ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -995,6 +1014,7 @@ tio.andn{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -1017,6 +1037,7 @@ tio.orn{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -1039,6 +1060,7 @@ tio.xnor{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -1061,6 +1083,7 @@ tio.rev8{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -1083,6 +1106,7 @@ tio.min{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -1105,6 +1129,7 @@ tio.minu{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -1127,6 +1152,7 @@ tio.max{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
@@ -1149,6 +1175,7 @@ tio.max{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32, RV64)::
+[wavedrom, , svg]
 ....
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },

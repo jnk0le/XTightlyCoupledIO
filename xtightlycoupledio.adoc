@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.11
+:appversion: 0.19.12
 :toc:
 :toclevels: 4
 :sectnums:
@@ -159,6 +159,15 @@ preformatted (shifted) constants even if only single bit is written.
 
 NOTE: BSRR is still usefull for `tio.mv` acces as it can work on non-continous bitfields 
 or content from pre generated lookup tables 
+
+==== use reserved registers in ABI deviations
+
+Similar to ti PRU approach.
+
+Only a few registers can be reserved like that. It takes out general purpose registers 
+from use leading to less efficient code.
+
+NOTE: ABI deviations is not standardized at this moment
 
 === omitted instructions
 

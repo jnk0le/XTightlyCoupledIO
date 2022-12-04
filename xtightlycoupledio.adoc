@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.2
+:appversion: 1.0.3
 :toc:
 :toclevels: 4
 :sectnums:
@@ -15,6 +15,14 @@ This document is released under a Creative Commons Attribution 4.0 International
 [colophon]
 == revision history
 
+[width="100%",options=header]
+|====================================================================================
+|Version  | change
+| v1.0.3 | setup revision history table
+| v1.0.2 | typo fix
+| v1.0.1 | extra text about heavy constants
+| v1.0.0 | first public release
+|====================================================================================
 
 [colophon]
 == preface

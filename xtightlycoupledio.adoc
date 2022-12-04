@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 |Version  | change
+| v1.0.6 | removed redundant note, improved spelling
 | v1.0.5 | add note about bit accesibility in bsb instructions
 | v1.0.4 | fixed wavedrom rendering
 | v1.0.3 | setup revision history table
@@ -387,8 +388,6 @@ as I find those names confusing
 
 The name `XTightlyCoupledIO` can be used as a catch all of following extensions.
 	
-NOTE: only the low 32bits of target register is accesible by branch instructions on rv64
-	
 === XTightlyCoupledIOsupp
 
 Supplementary instructions useful for alternative upper GPR approach.
@@ -419,7 +418,7 @@ Encoding (RV32, RV64)::
 
 NOTE: instruction proposed as Zce 32bit candidate
 
-NOTE: only bottom 32 bits are accessible on rv64
+NOTE: only bottom 32 bits of target register are accessible on rv64
 
 ==== tio.bsbclri.x
 
@@ -446,7 +445,7 @@ Encoding (RV32, RV64)::
 
 NOTE: instruction proposed as Zce 32bit candidate
 
-NOTE: only bottom 32 bits are accessible on rv64
+NOTE: only bottom 32 bits of target register are accessible on rv64
 
 ==== tio.bfinserti.xx
 
@@ -1386,7 +1385,7 @@ Encoding (RV32, RV64)::
 ]}
 ....
 
-NOTE: only bottom 32 bits are accessible on rv64
+NOTE: only bottom 32 bits of target register are accessible on rv64
 
 ==== tio.bsbclri.y
 
@@ -1412,7 +1411,7 @@ Encoding (RV32, RV64)::
 ]}
 ....
 
-NOTE: only bottom 32 bits are accessible on rv64
+NOTE: only bottom 32 bits of target register are accessible on rv64
 
 === XTightlyCoupledIObf
 

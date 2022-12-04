@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.0
+:appversion: 1.0.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -52,7 +52,7 @@ present, they no longer have to be bit-banged by gpio as it was done in the past
 My observation of frequent peripheral patterns are:
 
 - only single bit needs to be modified or branched on
-- register is written with a heavy constant
+- register is written with a heavy constant (including memory addresses)
 - register written with zero
 - in specific cases like STM32 BSRR or flag clearing, a single bit or inverted single bit constant is used
 - the register content comes directly from/to memory

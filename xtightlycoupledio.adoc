@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.13
+:appversion: 0.19.14
 :toc:
 :toclevels: 4
 :sectnums:
@@ -117,6 +117,7 @@ the upper part is populated only by the "CPU"
 only the GPIO pins are mapped to r30 and r31 register.
 
 special instructions for:
+
 - set/clear bit
 - branch if bit is set/cleared
 

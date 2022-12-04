@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 0.19.14
+:appversion: 1.0.0
 :toc:
 :toclevels: 4
 :sectnums:

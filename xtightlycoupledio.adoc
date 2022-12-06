@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.13
+:appversion: 1.0.14
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.14 | fixed mnemonic and rv64 encoding of tio.(s)bfextracti.xx instructions
 | v1.0.13 | improved rationale text
 | v1.0.12 | not probably mapped
 | v1.0.11 | avr io mapping is much simpler
@@ -503,7 +504,7 @@ extract bitfield from register
 
 Mnemonic::
 ```
-tio.sbfextracti.xx rd, rs1, offset, len
+tio.bfextracti.xx rd, rs1, offset, len
 ```
 
 Encoding (RV32)::
@@ -526,7 +527,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 2, name: 0x4 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -565,7 +566,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 2, name: 0x5 },
+ { bits: 3, name: 0x5 },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },

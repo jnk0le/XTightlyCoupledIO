@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.12
+:appversion: 1.0.13
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.13 | improved rationale text
 | v1.0.12 | not probably mapped
 | v1.0.11 | avr io mapping is much simpler
 | v1.0.10 | finally fixed all wavedrom rendering issues
@@ -76,8 +77,8 @@ My observation of frequent peripheral patterns are:
 - otherwise the content is used in/comes from computations
 - register content is immediately converted to float for computation
 
-NOTE: In C/C++ the peripheral registers are marked as `volatile` which prevents many 
-possible optimizations. The "side effecting" acceses must follow what was written in the source code even though a 
+NOTE: Also the C/C++ `volatile` registers prevent many possible compiler optimizations. 
+The "side effecting" acceses must follow what was written in the source code exactly, even though a 
 single read + 2 single bit branches could be actually optimized into just two `tio.bsb*.y` instructions.
 
 === prior art
@@ -260,7 +261,10 @@ need to automatically translate accesses to memory mapped registers into IO addr
 In case of avr8, the IO address space was mapped linearly to a specific offset 
 in data address space (+0x20).
 
-In case of risc-v we are about to end up with thousands outdated builds of custom toolchains. 
+In case of arm or risc-v the peripherals are scattered over large memory area
+with 1024 byte minimum spacing. Because of this there needs to be a special mapping 
+into IO address space and we are about to end up with thousands (sometimes GPL 
+violating) outdated builds of custom toolchains for all of those.
 As is already happening with interrupt controllers (e.g. WCH hw stacking)
 
 Therefore we need an unified file format describing peripheral to IO mapping, that will be provided by vendors. 

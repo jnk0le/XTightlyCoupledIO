@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.14
+:appversion: 1.0.15
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.15 | fixed bfextracti rv64 encoding
 | v1.0.14 | fixed mnemonic and rv64 encoding of tio.(s)bfextracti.xx instructions
 | v1.0.13 | improved rationale text
 | v1.0.12 | not probably mapped
@@ -1533,9 +1534,8 @@ Encoding (RV64)::
  { bits: 2, name: 0x2 },
  { bits: 1, name: 'bsel' },
  { bits: 5, name: 'ios1' },
- { bits: 5, name: 'offset' },
- { bits: 5, name: 'len' },
- { bits: 2, name: 'bsel' },
+ { bits: 6, name: 'offset' },
+ { bits: 6, name: 'len' },
 ]}
 ....
 
@@ -1574,9 +1574,8 @@ Encoding (RV64)::
  { bits: 2, name: 0x3 },
  { bits: 1, name: 'bsel' },
  { bits: 5, name: 'ios1' },
- { bits: 5, name: 'offset' },
- { bits: 5, name: 'len' },
- { bits: 2, name: 'bsel' },
+ { bits: 6, name: 'offset' },
+ { bits: 6, name: 'len' },
 ]}
 ....
 

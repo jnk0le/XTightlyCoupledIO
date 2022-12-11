@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.15
+:appversion: 1.0.16
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,22 +18,23 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
-| v1.0.15 | fixed bfextracti rv64 encoding
+| v1.0.16 | added section about AMO-op alt approach
+| v1.0.15 | fixed bfextracti.xy rv64 encoding
 | v1.0.14 | fixed mnemonic and rv64 encoding of tio.(s)bfextracti.xx instructions
 | v1.0.13 | improved rationale text
 | v1.0.12 | not probably mapped
 | v1.0.11 | avr io mapping is much simpler
 | v1.0.10 | finally fixed all wavedrom rendering issues
-| v1.0.9 | inverted single bit in one instruction
-| v1.0.8 | sync bsel description
-| v1.0.7 | fixed funct3 encodings of extract instructions
-| v1.0.6 | removed redundant note, improved spelling
-| v1.0.5 | add note about bit accesibility in bsb instructions
-| v1.0.4 | fixed wavedrom rendering
-| v1.0.3 | setup revision history table
-| v1.0.2 | typo fix
-| v1.0.1 | extra text about heavy constants
-| v1.0.0 | first public release
+| v1.0.9  | inverted single bit in one instruction
+| v1.0.8  | sync bsel description
+| v1.0.7  | fixed funct3 encodings of extract instructions
+| v1.0.6  | removed redundant note, improved spelling
+| v1.0.5  | add note about bit accesibility in bsb instructions
+| v1.0.4  | fixed wavedrom rendering
+| v1.0.3  | setup revision history table
+| v1.0.2  | typo fix
+| v1.0.1  | extra text about heavy constants
+| v1.0.0  | first public release
 |====================================================================================
 
 [colophon]
@@ -189,6 +190,15 @@ Only a few registers can be reserved like that. It takes out general purpose reg
 from use leading to less efficient code.
 
 NOTE: ABI deviations is not standardized at this moment
+
+==== use AMO-op instructions
+
+There is limited availability of A extensions acros embedded cores.
+
+Still requires loading of base address. +
+Base address must be generated with full `lui` + `addi` sequence as there is no immediate offset 
+like in regular load/store instructions.+
+Implements only swap/add/or/and/xor/min/max operations.
 
 === omitted instructions
 
@@ -1657,7 +1667,7 @@ Encoding (RV32, RV64)::
 
 ....
 
-NOTE: only bottom 32 bits are accessible
+NOTE: only bottom 32 bits are accessible on rv64
 
 ==== tio.cm.bclri0.yy
 
@@ -1682,7 +1692,7 @@ Encoding (RV32, RV64)::
 
 ....
 
-NOTE: only bottom 32 bits are accessible
+NOTE: only bottom 32 bits are accessible on rv64
 
 === XTightlyCoupledIOfcvt
 

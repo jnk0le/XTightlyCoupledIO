@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.16
+:appversion: 1.0.17
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.17 | improvements on volatile limitation notes
 | v1.0.16 | added section about AMO-op alt approach
 | v1.0.15 | fixed bfextracti.xy rv64 encoding
 | v1.0.14 | fixed mnemonic and rv64 encoding of tio.(s)bfextracti.xx instructions
@@ -83,6 +84,8 @@ My observation of frequent peripheral patterns are:
 NOTE: Also the C/C++ `volatile` registers prevent many possible compiler optimizations. 
 The "side effecting" acceses must follow what was written in the source code exactly, even though a 
 single read + 2 single bit branches could be actually optimized into just two `tio.bsb*.y` instructions.
+There is no way to distinguish if the intent was to avoid side effects, taking snapshot of status flags in time
+or just an optimization for typical architectures.
 
 === prior art
 
@@ -411,7 +414,11 @@ The name `XTightlyCoupledIO` can be used as a catch all of following extensions.
 === XTightlyCoupledIOsupp
 
 Supplementary instructions useful for alternative upper GPR approach.
-Potentially usefull in non IO code.
+
+Necessary when working on "cached" IO register content, as those cannot be 
+accessed multiple times due to `volatile` rules.
+
+> usefull also in non IO code.
 
 ==== tio.bsbseti.x
 

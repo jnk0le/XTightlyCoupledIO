@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.19
+:appversion: 1.0.20
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.20 | typo fix
 | v1.0.19 | typo fix
 | v1.0.18 | typo fix
 | v1.0.17 | improvements on volatile limitation notes
@@ -420,7 +421,7 @@ Supplementary instructions useful for alternative upper GPR approach.
 Necessary when working on "cached" IO register content, as those cannot be 
 accessed multiple times due to `volatile` rules.
 
-> usefull also in non IO code.
+NOTE: usefull also in non IO code.
 
 ==== tio.bsbseti.x
 

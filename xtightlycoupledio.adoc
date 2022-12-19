@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.20
+:appversion: 1.0.21
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.21 | fixed bsbseti/bsbclri instruction mnemonics
 | v1.0.20 | typo fix
 | v1.0.19 | typo fix
 | v1.0.18 | typo fix
@@ -430,7 +431,7 @@ Branch if single bit in register is set (immediate)
 
 Mnemonic::
 ```
-tio.bsbset.x rs1, shamt, label
+tio.bsbseti.x rs1, shamt, label
 ```
 
 Encoding (RV32, RV64)::
@@ -457,7 +458,7 @@ Branch if single bit in register is cleared (immediate)
 
 Mnemonic::
 ```
-tio.bsbclr.x rs1, shamt, label
+tio.bsbclri.x rs1, shamt, label
 ```
 
 Encoding (RV32, RV64)::

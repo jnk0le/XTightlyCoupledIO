@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.22
+:appversion: 1.0.23
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.23 | moved note to more appropriate section
 | v1.0.22 | just execute atomially
 | v1.0.21 | fixed bsbseti/bsbclri instruction mnemonics
 | v1.0.20 | typo fix
@@ -239,9 +240,6 @@ Therefore those instructions cannot be interrupted with visible side-effects.
 NOTE: number of banks and availability in certain instructions was decided
 totally arbitrarily, will be refined later
 
-NOTE: it is recommended to not keep registers mapped lienarly one after the other but 
-split into appropriate banks. e.g. read/write data register doesn't need to live in a bit operable banks.
-
 === side effects
 
 For easier mapping to high level languages, any access to IO registers causes
@@ -284,7 +282,7 @@ in data address space (+0x20).
 In case of arm or risc-v the peripherals are scattered over large memory area
 with 1024 byte minimum spacing. Because of this there needs to be a special mapping 
 into IO address space and we are about to end up with thousands (sometimes GPL 
-violating) outdated builds of custom toolchains for all of those.
+violating) outdated builds of custom toolchains, for all of those.
 As is already happening with interrupt controllers (e.g. WCH hw stacking)
 
 Therefore we need an unified file format describing peripheral to IO mapping, that will be provided by vendors. 
@@ -293,6 +291,9 @@ It will be passed to compiler command line similarly to source code or linker sc
 NOTE: Those mapping files can be also self made in case of "typical chinese vendors"
 
 NOTE: Those files could be used to provide named aliases in debuggers/decompilers
+
+NOTE: it is recommended to not keep registers mapped lienarly one after the other but 
+split into appropriate banks. e.g. read/write data register doesn't need to live in a bit operable banks.
 
 ==== TODO: define the iomapping file format
 

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.25
+:appversion: 1.0.26
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.26 | moved inverted single bit into ommitted instructions
 | v1.0.25 | removed "rest of zbs" section
 | v1.0.24 | removed rsub section
 | v1.0.23 | moved note to more appropriate section
@@ -228,6 +229,31 @@ Even single cycle implementations are potentially problematic to implement as
 the multiplier can span more pipeline stages than regular ALUs.
 
 NOTE: `tio.mul.xy` should still be quite possible, if the `mulh` is necessary the `tio.mul` becomes useless 
+
+==== inverted single bit constant
+
+Low use cases to be worth.
+
+Bottom 11 bits can be done with single instruction:
+
+```
+tio.addi iod, zero, (~(1<<pos))
+```
+
+Otherwise we can achieve this in 2 instructions:
+
+```
+lui t0, %hi(~(1<<pos))
+tio.addi iod, t0, %lo(~(1<<pos))
+```
+or
+```
+bseti t0, zero, shamt
+tio.xnor iod, zero, t0
+```
+
+NOTE: Normally `xori rd, rs1, -1` is used for inversion.
+
 
 == programmers model
 
@@ -1393,28 +1419,6 @@ Encoding (RV64)::
 ....
 
 NOTE: on rv64 `tio.bexti` can reach the upper 32 bits in addition to `tio.bsb*` instructions
-
-==== TODO: inverted single bit constant
-
-Bottom 11 bits can be done with single instruction:
-
-```
-tio.addi iod, zero, (~(1<<pos))
-```
-
-Otherwise we can achieve this in 2 instructions:
-
-```
-lui a0, %hi(~(1<<pos))
-tio.addi iod, a0, %lo(~(1<<pos))
-```
-or
-```
-bseti a0, zero, shamt
-tio.xnor iod, zero, a0
-```
-
-NOTE: Normally `xori rd, rs1, -1` is used for inversion.
 
 === XTightlyCoupledIOsbbr
 

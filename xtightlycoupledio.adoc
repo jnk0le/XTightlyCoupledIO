@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.28
+:appversion: 1.0.29
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.29 | various editorial improvements
 | v1.0.28 | typo fix
 | v1.0.27 | fixed bfinserti.xx encoding
 | v1.0.26 | moved inverted single bit into ommitted instructions
@@ -65,14 +66,13 @@ The spec can be donated (FOSS org??), if it allows it to undergo more comparativ
 
 == Introduction
 
-The scope of XTightlyCoupledIO extension is to reduce code size, increase performance
-in peripheral accessing code. It results in reduced latency in control loops etc.
+The scope of XTightlyCoupledIO extension is to reduce code size, register pressure and increase performance
+in peripheral accessing code. All of which results in reduced latency in control loops etc.
 
 This speec was created solely because we would have to wait for proprietary one otherwise.
 
 And if we are talking about proprietary extensions, they are usually:
-
-- Done wrong, mainly because specs are created on tight deadlines
+- Done wrong, mainly because specs are created on tight deadlines (like the severely missing instructions in XTheadBs)
 - Not done at all (the most obvious and common approach)
 - Those specs also almost never see an outside word and if they do, they are very badly 
 documented or not documented at all (let's guess what custom instructions the ch32v003 or ch32v307 implements...)
@@ -92,9 +92,9 @@ My observation of frequent peripheral patterns are:
 - otherwise the content is used in/comes from computations
 - register content is immediately converted to float for computation
 
-NOTE: Also the C/C++ `volatile` registers prevent many possible compiler optimizations. 
+NOTE: Also the C/C++ `volatile` specifier prevent many possible compiler optimizations. 
 The "side effecting" acceses must follow what was written in the source code exactly, even though a 
-single read + 2 single bit branches could be actually optimized into just two `tio.bsb*.y` instructions.
+read + 2 single bit branches could be actually optimized into just two `tio.bsb*.y` instructions.
 There is no way to distinguish if the intent was to avoid side effects, taking snapshot of status flags in time
 or just an optimization for typical architectures.
 
@@ -211,7 +211,7 @@ There is limited availability of A extensions acros embedded cores.
 
 Still requires loading of base address. +
 Base address must be generated with full `lui` + `addi` sequence as there is no immediate offset 
-like in regular load/store instructions.+
+like in regular load/store instructions. +
 Implements only swap/add/or/and/xor/min/max operations.
 
 === omitted instructions
@@ -230,7 +230,8 @@ Sometimes multi cycle, non deterministic.
 Even single cycle implementations are potentially problematic to implement as 
 the multiplier can span more pipeline stages than regular ALUs.
 
-NOTE: `tio.mul.xy` should still be quite possible, if the `mulh` is necessary the `tio.mul` becomes useless 
+NOTE: `tio.mul.xy` should still be quite possible for fixed point arithmetic scaling, if the 
+`mulh` is necessary the `tio.mul` becomes useless 
 
 ==== inverted single bit constant
 
@@ -424,7 +425,7 @@ tio.sbseti io86, zero, 17 // write (1<<17) to io 22 register in bank 2
 The following instructions are designated as a canonical IO move instructions:
 
 ```
-tio.add{n}.yx iod, rs1, zero 
+tio.add{n}.yx iod, rs1, zero
 tio.add{n}.xy rd, ios1, zero
 tio.add{n}.yy iod, ios1, zero // doesn't cross banks
 ```

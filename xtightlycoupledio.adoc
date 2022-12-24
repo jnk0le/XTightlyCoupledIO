@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.29
+:appversion: 1.0.30
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.30 | rendering fix
 | v1.0.29 | various editorial improvements
 | v1.0.28 | typo fix
 | v1.0.27 | fixed bfinserti.xx encoding
@@ -72,6 +73,7 @@ in peripheral accessing code. All of which results in reduced latency in control
 This speec was created solely because we would have to wait for proprietary one otherwise.
 
 And if we are talking about proprietary extensions, they are usually:
+
 - Done wrong, mainly because specs are created on tight deadlines (like the severely missing instructions in XTheadBs)
 - Not done at all (the most obvious and common approach)
 - Those specs also almost never see an outside word and if they do, they are very badly 

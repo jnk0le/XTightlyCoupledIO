@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.27
+:appversion: 1.0.28
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.28 | typo fix
 | v1.0.27 | fixed bfinserti.xx encoding
 | v1.0.26 | moved inverted single bit into ommitted instructions
 | v1.0.25 | removed "rest of zbs" section
@@ -163,7 +164,7 @@ special instructions for:
 
 === alternative approaches
 
-==== map tu upper GPR
+==== map to upper GPR
 
 Available on RVE only. Limited to 16 GPR mapped registers.
 Allows to recycle standard risc-v instructions operating on GPRs. 

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.35
+:appversion: 1.0.36
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.36 | fixed mask gen for zoroed register
 | v1.0.35 | fixed mask clearing in sample
 | v1.0.34 | added tio sample for a first appendix scenario
 | v1.0.33 | initial appendix scanario placeholder
@@ -1895,7 +1896,7 @@ init_clocks():
 	tio.bseti RCC_CR, RCC_CR, RCC_CR_PLLON
 1:
 	tio.bsbclri RCC_CR1, RCC_CR_PLLRDY, 1b
-	tio.bseti RCC_CFGR, RCC_CFGR, RCC_CFGR_SW_PLL
+	tio.bseti RCC_CFGR, RCC_CFGR, RCC_CFGR_SW_PLL_Pos+1 //effectively 0b10
 	c.li t1, RCC_CFGR_SWS_PLL // can be removed when bnei is available
 2:
 	tio.bfextracti t0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2

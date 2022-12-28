@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.37
+:appversion: 1.0.38
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.38 | properly implemented init_clocks2()
 | v1.0.37 | fixed FLASH_ACR setup
 | v1.0.36 | fixed mask gen for zoroed register
 | v1.0.35 | fixed mask clearing in sample
@@ -1816,7 +1817,6 @@ void init_clocks()
 	RCC->CFGR = RCC_CFGR_PLLMUL12;
 
 	RCC->CR |= RCC_CR_PLLON;
-
 	while(!(RCC->CR & RCC_CR_PLLRDY));
 
 	RCC->CFGR |= RCC_CFGR_SW_PLL;
@@ -1910,12 +1910,20 @@ init_clocks():
 ```
 void init_clocks2()
 {
-	FLASH->ACR = FLASH_ACR_PRFTBE_Msk | (FLASH_ACR_LATENCY_Msk & 0b001); // ws is 0 or 1
+	FLASH->ACR = FLASH_ACR_PRFTBE_Msk | (FLASH_ACR_LATENCY_Msk & 0b001); // 1ws
 
-	RCC->CFGR = RCC_CFGR_PLLMUL12 | (RCC->CFGR & ~RCC_CFGR_PLLMUL_Msk); 
+	if((RCC->CFGR & RCC_CFGR_SWS) == RCC_CFGR_SWS_PLL)
+	{
+		RCC->CFGR &= ~RCC_CFGR_SW_Msk; // switch to HSI (0b00)
+		while((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI);
+	}
 
+	RCC->CR &= ~RCC_CR_PLLON;
+	while((RCC->CR & RCC_CR_PLLRDY))
+
+	RCC->CFGR |= RCC_CFGR_PLLMUL12 | (RCC->CFGR & ~RCC_CFGR_PLLMUL_Msk); 
+	
 	RCC->CR |= RCC_CR_PLLON;
-
 	while(!(RCC->CR & RCC_CR_PLLRDY));
 
 	RCC->CFGR = RCC_CFGR_SW_PLL | (RCC->CFGR & ~RCC_CFGR_SW_Msk);
@@ -1932,29 +1940,56 @@ init_clocks2():                      # @init_clocks2()
         sw      a1, 0(a0)
         lui     a0, 262177
         lw      a1, 4(a0)
-        lui     a2, 1047616
-        addi    a2, a2, -1
-        and     a1, a1, a2
-        bseti   a1, a1, 19
-        bseti   a1, a1, 21
+        andi    a1, a1, 12
+        li      a2, 8
+        bne     a1, a2, .LBB1_3
+        lw      a1, 4(a0)
+        andi    a1, a1, -4
         sw      a1, 4(a0)
+.LBB1_2:                                # =>This Inner Loop Header: Depth=1
+        lw      a1, 4(a0)
+        andi    a1, a1, 12
+        bnez    a1, .LBB1_2
+.LBB1_3:
+        lw      a1, 0(a0)
+        bclri   a1, a1, 24
+        sw      a1, 0(a0)
+        lw      a0, 0(a0)
+        slli    a0, a0, 6
+        bgez    a0, .LBB1_6
+        lui     a0, 262177
+        lui     a1, 1047616
+        addi    a1, a1, -1
+.LBB1_5:                                # =>This Inner Loop Header: Depth=1
+        lw      a2, 4(a0)
+        lw      a3, 4(a0)
+        and     a2, a2, a1
+        or      a2, a2, a3
+        bseti   a2, a2, 19
+        bseti   a2, a2, 21
+        sw      a2, 4(a0)
+        lw      a2, 0(a0)
+        slli    a2, a2, 6
+        bltz    a2, .LBB1_5
+.LBB1_6:
+        lui     a0, 262177
         lw      a1, 0(a0)
         bseti   a1, a1, 24
         sw      a1, 0(a0)
-.LBB1_1:                                # =>This Inner Loop Header: Depth=1
+.LBB1_7:                                # =>This Inner Loop Header: Depth=1
         lw      a1, 0(a0)
         slli    a1, a1, 6
-        bgez    a1, .LBB1_1
+        bgez    a1, .LBB1_7
         lui     a0, 262177
         lw      a1, 4(a0)
         andi    a1, a1, -4
         ori     a1, a1, 2
         sw      a1, 4(a0)
         li      a1, 8
-.LBB1_3:                                # =>This Inner Loop Header: Depth=1
+.LBB1_9:                                # =>This Inner Loop Header: Depth=1
         lw      a2, 4(a0)
         andi    a2, a2, 12
-        bne     a2, a1, .LBB1_3
+        bne     a2, a1, .LBB1_9
         ret
 ```
 
@@ -1962,35 +1997,57 @@ armv7m::
 [source, asm]
 ```
 init_clocks2():
-        ldr     r3, .L15
+        ldr     r3, .L20
         movs    r2, #17
         str     r2, [r3]
         sub     r3, r3, #4096
         ldr     r2, [r3, #4]
-        bic     r2, r2, #3932160
-        orr     r2, r2, #2621440
+        and     r2, r2, #12
+        cmp     r2, #8
+        bne     .L10
+        ldr     r2, [r3, #4]
+        bic     r2, r2, #3
         str     r2, [r3, #4]
+.L11:
+        ldr     r2, [r3, #4]
+        tst     r2, #12
+        bne     .L11
+.L10:
+        ldr     r2, [r3]
+        bic     r2, r2, #16777216
+        str     r2, [r3]
+.L12:
+        ldr     r2, [r3]
+        lsls    r1, r2, #6
+        bmi     .L13
         ldr     r2, [r3]
         orr     r2, r2, #16777216
         str     r2, [r3]
-.L10:
+.L14:
         ldr     r2, [r3]
         lsls    r2, r2, #6
-        bpl     .L10
+        bpl     .L14
         ldr     r2, [r3, #4]
         bic     r2, r2, #3
         orr     r2, r2, #2
         str     r2, [r3, #4]
-.L11:
+.L15:
         ldr     r2, [r3, #4]
         and     r2, r2, #12
         cmp     r2, #8
-        bne     .L11
+        bne     .L15
         bx      lr
+.L13:
+        ldr     r2, [r3, #4]
+        ldr     r1, [r3, #4]
+        bic     r2, r2, #3932160
+        orrs    r2, r2, r1
+        orr     r2, r2, #2621440
+        str     r2, [r3, #4]
+        b       .L12
 .align 2 // implicitly aligned
-.L15:
+.L20:
         .word   1073881088
-        .word   1073876992
 ```
 
 NOTE: gcc fails to detect `bfi` from constant pattern generally (clang exists in armv7-a version only)

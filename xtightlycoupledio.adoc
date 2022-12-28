@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.33
+:appversion: 1.0.34
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.34 | added tio sample for a first appendix scenario
 | v1.0.33 | initial appendix scanario placeholder
 | v1.0.32 | sync cm destructive specifier with C extension
 | v1.0.31 | cm instruction require Zca
@@ -1836,8 +1837,8 @@ init_clocks():                       # @init_clocks()
         sw      a1, 0(a0)
 .LBB0_1:                                # =>This Inner Loop Header: Depth=1
         lw      a1, 0(a0)
-        slli    a1, a1, 6
-        bgez    a1, .LBB0_1
+        slli    a1, a1, 6     // gcc 12.2 fails to detect this pattern and performs
+        bgez    a1, .LBB0_1   // li + and + beq, even though on arm it works fine
         lui     a0, 262177
         lw      a1, 4(a0)
         ori     a1, a1, 2
@@ -1886,7 +1887,19 @@ init_clocks():
 risc-v + XTightlyCoupledIO::
 [source, asm]
 ```
-
+init_clocks():
+	tio.addi FLASH_ACR, zero, (FLASH_ACR_PRFTBE_Msk | (FLASH_ACR_LATENCY_Msk & 0b001))
+	lui t0, %hi(RCC_CFGR_PLLMUL12)
+	tio.cm.mv RCC_CFGR, t0 // no need for addi
+	tio.bseti RCC_CR, RCC_CR, RCC_CR_PLLON
+1:
+	tio.bsbclri RCC_CR1, RCC_CR_PLLRDY, 1b
+	tio.bseti RCC_CFGR, RCC_CFGR, RCC_CFGR_SW_PLL
+	c.li t1, RCC_CFGR_SWS_PLL // can be removed when bnei is available
+2:
+	tio.bfextracti t0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
+	bne t0, t1, 2b // can do bnei in this scenario
+	ret
 ```
 
 
@@ -1980,6 +1993,8 @@ init_clocks2():
         .word   1073881088
         .word   1073876992
 ```
+
+NOTE: gcc fails to detect `bfi` from constant pattern generally (clang exists in armv7-a version only)
 
 risc-v + XTightlyCoupledIO::
 [source, asm]

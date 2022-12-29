@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.38
+:appversion: 1.0.39
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v1.0.39 | added tio implementation of second pll config, some fixes
 | v1.0.38 | properly implemented init_clocks2()
 | v1.0.37 | fixed FLASH_ACR setup
 | v1.0.36 | fixed mask gen for zoroed register
@@ -1839,8 +1840,8 @@ init_clocks():                       # @init_clocks()
         sw      a1, 0(a0)
 .LBB0_1:                                # =>This Inner Loop Header: Depth=1
         lw      a1, 0(a0)
-        slli    a1, a1, 6     // gcc 12.2 fails to detect this pattern and performs
-        bgez    a1, .LBB0_1   // li + and + beq, even though on arm it works fine
+        slli    a1, a1, 6
+        bgez    a1, .LBB0_1
         lui     a0, 262177
         lw      a1, 4(a0)
         ori     a1, a1, 2
@@ -1852,6 +1853,9 @@ init_clocks():                       # @init_clocks()
         bne     a2, a1, .LBB0_3
         ret
 ```
+
+NOTE: gcc 12.2 fails to detect `slli` + `bgez` pattern and performs 
+li + and + beq, even though on arm it works fine
 
 armv7m::
 [source, asm]
@@ -1879,10 +1883,8 @@ init_clocks():
         cmp     r2, #8
         bne     .L3
         bx      lr
-.align 2 // implicitly aligned
 .L7:
         .word   1073881088
-        .word   1073876992
 ```
 
 risc-v + XTightlyCoupledIO::
@@ -1892,11 +1894,11 @@ init_clocks():
 	tio.addi FLASH_ACR, zero, (FLASH_ACR_PRFTBE_Msk | (FLASH_ACR_LATENCY_Msk & 0b001))
 	lui t0, %hi(RCC_CFGR_PLLMUL12)
 	tio.cm.mv RCC_CFGR, t0 // no need for addi
-	tio.bseti RCC_CR, RCC_CR, RCC_CR_PLLON
+	tio.bseti RCC_CR, RCC_CR, RCC_CR_PLLON_Pos
 1:
-	tio.bsbclri RCC_CR1, RCC_CR_PLLRDY, 1b
+	tio.bsbclri RCC_CR1, RCC_CR_PLLRDY_Pos, 1b
 	tio.bseti RCC_CFGR, RCC_CFGR, RCC_CFGR_SW_PLL_Pos+1 // effectively 0b10
-	c.li t1, RCC_CFGR_SWS_PLL // can be removed when bnei is available
+	c.li t1, RCC_CFGR_SWS_PLL
 2:
 	tio.bfextracti t0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
 	bne t0, t1, 2b // can do bnei in this scenario
@@ -1921,13 +1923,13 @@ void init_clocks2()
 	RCC->CR &= ~RCC_CR_PLLON;
 	while((RCC->CR & RCC_CR_PLLRDY))
 
-	RCC->CFGR |= RCC_CFGR_PLLMUL12 | (RCC->CFGR & ~RCC_CFGR_PLLMUL_Msk); 
+	RCC->CFGR = RCC_CFGR_PLLMUL12 | (RCC->CFGR & ~RCC_CFGR_PLLMUL_Msk); 
 	
 	RCC->CR |= RCC_CR_PLLON;
 	while(!(RCC->CR & RCC_CR_PLLRDY));
 
 	RCC->CFGR = RCC_CFGR_SW_PLL | (RCC->CFGR & ~RCC_CFGR_SW_Msk);
-	while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
+	while((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
 }
 ```
 
@@ -1954,42 +1956,35 @@ init_clocks2():                      # @init_clocks2()
         lw      a1, 0(a0)
         bclri   a1, a1, 24
         sw      a1, 0(a0)
-        lw      a0, 0(a0)
-        slli    a0, a0, 6
-        bgez    a0, .LBB1_6
+.LBB1_4:                                # =>This Inner Loop Header: Depth=1
+        lw      a1, 0(a0)
+        slli    a1, a1, 6
+        bltz    a1, .LBB1_4
         lui     a0, 262177
-        lui     a1, 1047616
-        addi    a1, a1, -1
-.LBB1_5:                                # =>This Inner Loop Header: Depth=1
-        lw      a2, 4(a0)
-        lw      a3, 4(a0)
-        and     a2, a2, a1
-        or      a2, a2, a3
-        bseti   a2, a2, 19
-        bseti   a2, a2, 21
-        sw      a2, 4(a0)
-        lw      a2, 0(a0)
-        slli    a2, a2, 6
-        bltz    a2, .LBB1_5
-.LBB1_6:
-        lui     a0, 262177
+        lw      a1, 4(a0)
+        lui     a2, 1047616
+        addi    a2, a2, -1
+        and     a1, a1, a2
+        bseti   a1, a1, 19
+        bseti   a1, a1, 21
+        sw      a1, 4(a0)
         lw      a1, 0(a0)
         bseti   a1, a1, 24
         sw      a1, 0(a0)
-.LBB1_7:                                # =>This Inner Loop Header: Depth=1
+.LBB1_6:                                # =>This Inner Loop Header: Depth=1
         lw      a1, 0(a0)
         slli    a1, a1, 6
-        bgez    a1, .LBB1_7
+        bgez    a1, .LBB1_6
         lui     a0, 262177
         lw      a1, 4(a0)
         andi    a1, a1, -4
         ori     a1, a1, 2
         sw      a1, 4(a0)
         li      a1, 8
-.LBB1_9:                                # =>This Inner Loop Header: Depth=1
+.LBB1_8:                                # =>This Inner Loop Header: Depth=1
         lw      a2, 4(a0)
         andi    a2, a2, 12
-        bne     a2, a1, .LBB1_9
+        bne     a2, a1, .LBB1_8
         ret
 ```
 
@@ -2019,33 +2014,28 @@ init_clocks2():
 .L12:
         ldr     r2, [r3]
         lsls    r1, r2, #6
-        bmi     .L13
+        bmi     .L12
+        ldr     r2, [r3, #4]
+        bic     r2, r2, #3932160
+        orr     r2, r2, #2621440
+        str     r2, [r3, #4]
         ldr     r2, [r3]
         orr     r2, r2, #16777216
         str     r2, [r3]
-.L14:
+.L13:
         ldr     r2, [r3]
         lsls    r2, r2, #6
-        bpl     .L14
+        bpl     .L13
         ldr     r2, [r3, #4]
         bic     r2, r2, #3
         orr     r2, r2, #2
         str     r2, [r3, #4]
-.L15:
+.L14:
         ldr     r2, [r3, #4]
         and     r2, r2, #12
         cmp     r2, #8
-        bne     .L15
+        bne     .L14
         bx      lr
-.L13:
-        ldr     r2, [r3, #4]
-        ldr     r1, [r3, #4]
-        bic     r2, r2, #3932160
-        orrs    r2, r2, r1
-        orr     r2, r2, #2621440
-        str     r2, [r3, #4]
-        b       .L12
-.align 2 // implicitly aligned
 .L20:
         .word   1073881088
 ```
@@ -2055,7 +2045,29 @@ NOTE: gcc fails to detect `bfi` from constant pattern generally (clang exists in
 risc-v + XTightlyCoupledIO::
 [source, asm]
 ```
-
+init_clocks2():
+	tio.addi FLASH_ACR, zero, (FLASH_ACR_PRFTBE_Msk | (FLASH_ACR_LATENCY_Msk & 0b001))
+	c.li t1, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos) // SW and SWS use same encodings, reuse later
+	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
+	bne a0, t1, 2f // can do bnei in this scenario
+	tio.bfinserti RCC_CFGR, zero, RCC_CFGR_SW_Pos, 2
+1:
+	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
+	c.bnez a0, 1b
+2:
+	tio.bclri RCC_CR, RCC_CR, RCC_CR_PLLON_Pos
+3:
+	tio.bsbseti RCC_CR, RCC_CR_PLLRDY_Pos, 3b
+	c.li a0, (RCC_CFGR_PLLMUL12 >> RCC_CFGR_PLLMUL_Pos) // 0b1010
+	tio.bfinserti RCC_CFGR, a0, RCC_CFGR_PLLMUL_Pos, 4
+	tio.bseti RCC_CR, RCC_CR, RCC_CR_PLLON_Pos
+4:
+	tio.bsbclri, RCC_CR, RCC_CR_PLLRDY_Pos, 4b
+	tio.bfinserti RCC_CFGR, t1, RCC_CFGR_SW_Pos, 4 // can recycle a0, if t1 is not available (due to bnei)
+5:
+	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
+	bne a0, t1, 5b // can do bnei in this scenario
+	ret
 ```
 
 [bibliography]

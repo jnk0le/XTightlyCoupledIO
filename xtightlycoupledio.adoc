@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 1.0.39
+:appversion: 2.0.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,9 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.0.0  | major rework of encodings, the '.yy' is now destructive `.y` form,
+            removed `tio.slt`/`tio.sgt` instructions, shuffled subetensions
+            added reg-reg single bit instructions, minor fixes
 | v1.0.39 | added tio implementation of second pll config, some fixes
 | v1.0.38 | properly implemented init_clocks2()
 | v1.0.37 | fixed FLASH_ACR setup
@@ -69,8 +72,8 @@ Changes in prior versions are not versioned properly and not tracked in revision
 
 Document is written in a way that reduces the duplications as those are hard to maintain.
 
-There was no attempt at optimizing instruction encodings, (or packing them in less opcodes) 
-other than sticking close to canonical risc-v encodings, yet.
+There was no attempt at optimizing instruction encodings, other than sticking 
+close to canonical risc-v encodings, yet.
 
 The spec can be donated (FOSS org??), if it allows it to undergo more comparative studies and proceed to "standardization" 
 
@@ -169,7 +172,7 @@ special instructions for:
 
 ==== ti c2/f2
 
-<<spracw5a>> claims 2 cycle for ADC reg to float, Fig 4-3 claims 3x cycle speedup over cortex m4 (stm32g4)
+<<spracw5a>> claims 2 cycles for ADC reg to float, Fig 4-3 claims 3x cycle speedup over cortex m4 (stm32g4)
 
 ==== ???
 
@@ -218,7 +221,7 @@ NOTE: ABI deviations is not standardized at this moment
 
 ==== use AMO-op instructions
 
-There is limited availability of A extensions acros embedded cores.
+There is limited availability of A extension acros embedded cores.
 
 Still requires loading of base address. +
 Base address must be generated with full `lui` + `addi` sequence as there is no immediate offset 
@@ -268,7 +271,6 @@ tio.xnor iod, zero, t0
 
 NOTE: Normally `xori rd, rs1, -1` is used for inversion.
 
-
 == programmers model
 
 The XTightlyCoupledIO extension adds 4 banks of 32 XLEN sized IO registers each.
@@ -294,7 +296,7 @@ was read, modified and written back.
 ```
 GPIOA->OUT |= (1<<13);
 //is equivalent to
-tio.sbseti io123, io123, 13
+tio.bseti io123, 13
 ```
 
 ==== TODO: grouping of bits from multiple different registers
@@ -409,36 +411,32 @@ and {rdm} and {rsm} are substituted with one of the following letter.
 Register specifiers use the same letter.
 
 ```
-tio.sbseti3.yy y11, y11, 13 // set bit 13 in io 11 register in bank 3
-tio.sbseti2.yx y22, zero, 17 // write (1<<17) to io 22 register in bank 2
+tio.bseti3.y y11, 13 // set bit 13 in io 11 register in bank 3
+tio.bseti2.yx y22, zero, 17 // write (1<<17) to io 22 register in bank 2
 ```
 
-//put it in separate section??
-When {rdm} and {rsm} are present in instruction encodings, they control 
-`rd` and `rs1` fields. If high the IO register in selected bank is targeted
-
 NOTE: letter y was picked totally arbitrarily as it's single letter and doesn't have conflicts
+
 
 ==== pseudoinstructions
 
 `tio` instructions referred to without the bank number and suffix.
 
 Pseudoinstructions use the `io` name prefix as the register specifier with
-linearized addressing. The `.yy` form cannot cross the banks.
+linearized addressing.
 
 ```
-tio.sbseti io107, io107, 13 // set bit 13 in io 11 register in bank 3
-tio.sbseti io86, zero, 17 // write (1<<17) to io 22 register in bank 2
+tio.bseti io107, 13 // set bit 13 in io 11 register in bank 3
+tio.bseti io86, zero, 17 // write (1<<17) to io 22 register in bank 2
 ```
 
-===== Canonical io move instruction
+==== Canonical io move instruction
 
 The following instructions are designated as a canonical IO move instructions:
 
 ```
 tio.add{n}.yx iod, rs1, zero
 tio.add{n}.xy rd, ios1, zero
-tio.add{n}.yy iod, ios1, zero // doesn't cross banks
 ```
 
 Available under `tio.mv` name with suffixed or linearized version.
@@ -454,11 +452,21 @@ doesn't provide bitwise and/or/xor in its early ALU
 NOTE: the move to/from IO registeris are not named as `in` and `out`
 as I find those names confusing
 
+=== instruction encodings
+
+When `iom` bit is present, it controls wether `rd` or `rs1` targets IO register. +
+When high the rd field targets IO register. When low, the rs1 field targets the IO register.
+
+`bsel` immediate selects the accessed bank number. Bits missing from encodings are implied to be zero.
+
+`sideOP` encodes a side operation, that will be a part of another extension. This field is reserved 
+and must be set to `0b00000` (no extra operation)
+
 [[chapter_title]]
 == XTightlyCoupledIO subextensions
 
 The name `XTightlyCoupledIO` can be used as a catch all of following extensions.
-	
+
 === XTightlyCoupledIOsupp
 
 Supplementary instructions useful for alternative upper GPR approach.
@@ -482,9 +490,9 @@ Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'imm[4:1|11]' },
- { bits: 3, name: 0x0 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'shamt' },
  { bits: 7, name: 'imm[12|10:5]' },
@@ -509,9 +517,9 @@ Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'imm[4:1|11]' },
- { bits: 3, name: 0x1 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'shamt' },
  { bits: 7, name: 'imm[12|10:5]' },
@@ -521,47 +529,6 @@ Encoding (RV32, RV64)::
 NOTE: instruction proposed as Zce 32bit candidate
 
 NOTE: only bottom 32 bits of target register are accessible on rv64
-
-==== tio.bfinserti.xx
-
-Synopsis::
-Destructive bitfield insert into register (immediate)
-
-Mnemonic::
-```
-tio.bfinserti.xx rd, rs1, offset, len
-```
-
-Encoding (RV32)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-0'] },
- { bits: 5, name: 'rd' },
- { bits: 3, name: 0x4 },
- { bits: 5, name: 'rs1' },
- { bits: 5, name: 'offset' },
- { bits: 5, name: 'len' },
- { bits: 2, name: 0x0 },
-]}
-....
-
-Encoding (RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-0'] },
- { bits: 5, name: 'rd' },
- { bits: 3, name: 0x4 },
- { bits: 5, name: 'rs1' },
- { bits: 6, name: 'offset' },
- { bits: 6, name: 'len' },
-]}
-....
-
-NOTE: due to encoding constraints only destructive form is provided
-
-NOTE: instruction was proposed for P extension as there are many more rd destructive ones 
 
 ==== tio.bfextracti.xx
 
@@ -579,7 +546,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x4 },
+ { bits: 3, name: 0x5 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -593,7 +560,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x4 },
+ { bits: 3, name: 0x5 },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -618,7 +585,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x5 },
+ { bits: 3, name: 0x6 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -632,7 +599,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x5 },
+ { bits: 3, name: 0x6 },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -641,14 +608,57 @@ Encoding (RV64)::
 
 NOTE: instruction is equivalent to `slli` + `srai` sequence
 
-=== XTightlyCoupledIOa
+=== XTightlyCoupledIOsuppbfi
 
-general IO alu, instructions
+Supplementary bitfield insert useful for alternative upper GPR approach.
 
-The `.xx` form of those instructions is reserved
+Necessary when working on "cached" IO register content, as those cannot be 
+accessed multiple times due to `volatile` rules.
 
-NOTE: the .yy form can be further limited to target only one IO register
-for more efficient implementations
+==== tio.bfinserti.xx
+
+Synopsis::
+Destructive bitfield insert into register (immediate)
+
+Mnemonic::
+```
+tio.bfinserti.xx rd, rs1, offset, len
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'rs1' },
+ { bits: 5, name: 'offset' },
+ { bits: 5, name: 'len' },
+ { bits: 2, name: 0x0 },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'rs1' },
+ { bits: 6, name: 'offset' },
+ { bits: 6, name: 'len' },
+]}
+....
+
+NOTE: due to encoding constraints only destructive form is provided
+
+NOTE: instruction was proposed for P extension as there are many more rd destructive ones 
+
+=== XTightlyCoupledIOaddi
+
+Single IO `addi` instruction provided for minimal implementations
 
 ==== tio.addi.yx
 
@@ -675,25 +685,27 @@ Encoding (RV32, RV64)::
 
 NOTE: `lui` + `tio.addi` pair can be used to write any 32bit constant into IO register.
 
+
+=== XTightlyCoupledIOa
+
 ==== tio.add
 
 Mnemonic::
 ```
-tio.add{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
+tio.add{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
  { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x0 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 4, name: 0x0 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -702,21 +714,20 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.sub{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
+tio.sub{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
  { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x1 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 4, name: 0x1 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -725,21 +736,20 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.and{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
+tio.and{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
  { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x2 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 4, name: 0x2 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -748,21 +758,20 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.or{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
+tio.or{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
  { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x3 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 4, name: 0x3 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -771,44 +780,20 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.xor{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
+tio.xor{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
  { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x4 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.sll
-
-Mnemonic::
-```
-tio.sll{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x1 },
- { bits: 5, name: 'ios1/rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x5 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 4, name: 0x4 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -817,21 +802,21 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.slli{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
+tio.slli{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x4 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0x0 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x3 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -840,37 +825,13 @@ Encoding (RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x4 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0x0 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.srl
-
-Mnemonic::
-```
-tio.srl{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x1 },
- { bits: 5, name: 'ios1/rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x6 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 3, name: 0x3 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -879,21 +840,21 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.srli{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
+tio.srli{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x4 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0x2 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x4 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -902,37 +863,13 @@ Encoding (RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x4 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0x1 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.sra
-
-Mnemonic::
-```
-tio.sra{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, rs2
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x1 },
- { bits: 5, name: 'ios1/rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x7 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 3, name: 0x4 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -941,21 +878,21 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.srli{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
+tio.srai{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x4 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0x4 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x5 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -964,307 +901,667 @@ Encoding (RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x4 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0x2 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 3, name: 0x5 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
 
-==== tio.slt.xy
+==== tio.sll
 
 Mnemonic::
 ```
-tio.slt{bsel}.xy rd, ios1, rs2
+tio.sll{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
  { bits: 3, name: 0x2 },
  { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x3 },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.srl
+
+Mnemonic::
+```
+tio.srl{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x2 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x4 },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.sra
+
+Mnemonic::
+```
+tio.sra{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x2 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x5 },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+=== XTightlyCoupledIOad
+
+Destructive general IO alu instructions
+
+==== tio.add.y
+
+Mnemonic::
+```
+tio.add{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 5, name: 0x0 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.sub.y
+
+Mnemonic::
+```
+tio.sub{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 5, name: 0x1 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.and.y
+
+Mnemonic::
+```
+tio.and{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 5, name: 0x2 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.or.y
+
+Mnemonic::
+```
+tio.or{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 5, name: 0x3 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.xor.y
+
+Mnemonic::
+```
+tio.xor{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 5, name: 0x4 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.slli.y
+
+Mnemonic::
+```
+tio.slli{bsel}.y iod, shamt
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'shamt' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x3 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 6, name: 'shamt' },
+ { bits: 4, name: 0x3 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.srli.y
+
+Mnemonic::
+```
+tio.srli{bsel}.y iod, shamt
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'shamt' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x4 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 6, name: 'shamt' },
+ { bits: 4, name: 0x4 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.srai.y
+
+Mnemonic::
+```
+tio.srai{bsel}.y iod, shamt
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'shamt' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x5 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 6, name: 'shamt' },
+ { bits: 4, name: 0x5 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.sll.y
+
+Mnemonic::
+```
+tio.sll{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x6 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x3 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.srl.y
+
+Mnemonic::
+```
+tio.srl{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x6 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x4 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.sra.y
+
+Mnemonic::
+```
+tio.sra{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x6 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x5 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+=== XTightlyCoupledIObb
+
+==== tio.andn
+
+Mnemonic::
+```
+tio.andn{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x1 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 4, name: 0x5 },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+
+==== tio.orn
+
+Mnemonic::
+```
+tio.orn{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x1 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 4, name: 0x6 },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+
+==== tio.xnor
+
+Mnemonic::
+```
+tio.xnor{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x1 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 4, name: 0x7 },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+
+==== tio.min
+
+Mnemonic::
+```
+tio.min{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x1 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 4, name: 0x8 },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+
+==== tio.minu
+
+Mnemonic::
+```
+tio.minu{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x1 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 4, name: 0x9 },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+
+==== tio.max
+
+Mnemonic::
+```
+tio.max{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x1 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 4, name: 0xa },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+
+==== tio.maxu
+
+Mnemonic::
+```
+tio.maxu{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x1 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 4, name: 0xb },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+
+==== tio.rev8
+
+Mnemonic::
+```
+tio.rev8{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x1 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 4, name: 0xc },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+
+=== XTightlyCoupledIObbd
+
+Destructive general IO bitmanip instructions
+
+==== tio.andn.y
+
+Mnemonic::
+```
+tio.andn{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 5, name: 0x5 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.orn.y
+
+Mnemonic::
+```
+tio.orn{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 5, name: 0x6 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.xnor.y
+
+Mnemonic::
+```
+tio.xnor{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 5, name: 0x7 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.min.y
+
+Mnemonic::
+```
+tio.min{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
  { bits: 5, name: 'rs2' },
  { bits: 5, name: 0x8 },
  { bits: 2, name: 'bsel' },
 ]}
 ....
 
-==== tio.sltu.xy
+==== tio.minu.y
 
 Mnemonic::
 ```
-tio.sltu{bsel}.xy rd, ios1, rs2
+tio.minu{bsel}.y iod, rs2
 ```
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x2 },
- { bits: 5, name: 'ios1/rs1' },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
  { bits: 5, name: 'rs2' },
  { bits: 5, name: 0x9 },
  { bits: 2, name: 'bsel' },
 ]}
 ....
 
-==== tio.sgt.xy
+==== tio.max.y
 
 Mnemonic::
 ```
-tio.sgt{bsel}.xy rd, ios1, rs2
+tio.max{bsel}.y iod, rs2
 ```
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x3 },
- { bits: 5, name: 'ios1/rs1' },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
  { bits: 5, name: 'rs2' },
  { bits: 5, name: 0xa },
  { bits: 2, name: 'bsel' },
 ]}
 ....
 
-NOTE: normally a pseudoinstrution by swapping rs1 and rs2 operands of slt instruction
-
-==== tio.sgtu.xy
+==== tio.maxu.y
 
 Mnemonic::
 ```
-tio.sgtu{bsel}.xy rd, ios1, rs2
+tio.max{bsel}.y iod, rs2
 ```
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x3 },
- { bits: 5, name: 'ios1/rs1' },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
  { bits: 5, name: 'rs2' },
  { bits: 5, name: 0xb },
  { bits: 2, name: 'bsel' },
 ]}
 ....
 
-NOTE: normally a pseudoinstrution by swapping rs1 and rs2 operands of sltu instruction
-
-=== XTightlyCoupledIObb
-
-general IO bitmanip, instructions
-
-The `.xx` form of those instructions is reserved
-
-NOTE: the .yy form can be further limited to target only one IO register
-for more efficient implementations
-
-==== tio.andn
-
-Mnemonic::
-```
-tio.andn{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x2 },
- { bits: 5, name: 'ios1/rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x2 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.orn
-
-Mnemonic::
-```
-tio.orn{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x2 },
- { bits: 5, name: 'ios1/rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x3 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.xnor
-
-Mnemonic::
-```
-tio.xnor{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x2 },
- { bits: 5, name: 'ios1/rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x4 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.rev8
-
-Mnemonic::
-```
-tio.rev8{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x2 },
- { bits: 5, name: 'ios1/rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x5 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.min
-
-Mnemonic::
-```
-tio.min{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x2 },
- { bits: 5, name: 'ios1/rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x6 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.minu
-
-Mnemonic::
-```
-tio.minu{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x2 },
- { bits: 5, name: 'ios1/rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x7 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.max
-
-Mnemonic::
-```
-tio.max{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x3 },
- { bits: 5, name: 'ios1/rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x0 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.maxu
-
-Mnemonic::
-```
-tio.max{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
- { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x3 },
- { bits: 5, name: 'ios1/rs1' },
- { bits: 5, name: 'rs2' },
- { bits: 3, name: 0x1 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
 === XTightlyCoupledIOsb
-
-single bit IO access instructions
-
-The `.xx` form of those instructions is reserved
-
-NOTE: the .yy form can be further limited to target only one IO register
-for more efficient implementations
 
 ==== tio.bseti
 
@@ -1273,21 +1570,21 @@ Single bit set (immediate)
 
 Mnemonic::
 ```
-tio.bseti{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
+tio.bseti{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x0 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0x2 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x0 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -1296,19 +1593,16 @@ Encoding (RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x0 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0x1 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 3, name: 0x0 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
-
-NOTE: `tio.bseti` can be generate any single bit constant by using zero register
 
 ==== tio.bclri
 
@@ -1317,21 +1611,21 @@ Single bit clear (immediate)
 
 Mnemonic::
 ```
-tio.bclri{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
+tio.bclri{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x0 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0x4 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x1 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -1340,14 +1634,13 @@ Encoding (RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x0 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0x2 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 3, name: 0x1 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -1359,21 +1652,21 @@ Single bit invert (immediate)
 
 Mnemonic::
 ```
-tio.binvi{bsel}.{x,y}{x,y} rd/iod, rs1/ios1, shamt
+tio.binvi{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
 ```
 
 Encoding (RV32)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x0 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 5, name: 'shamt' },
- { bits: 3, name: 0x6 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x2 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -1382,14 +1675,13 @@ Encoding (RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
- { bits: 3, name: 0x0 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'ios1/rs1' },
  { bits: 6, name: 'shamt' },
- { bits: 2, name: 0x2 },
- { bits: 1, name: 'rsm' },
- { bits: 1, name: 'rdm' },
+ { bits: 3, name: 0x2 },
+ { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -1408,12 +1700,397 @@ Encoding (RV32)::
 [wavedrom, , svg]
 ....
 {reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x3 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'shamt' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x6 },
+ { bits: 1, name: 0, attr: ['iom'] },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x3 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 6, name: 'shamt' },
+ { bits: 3, name: 0x6 },
+ { bits: 1, name: 0, attr: ['iom'] },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.bset
+
+Synopsis::
+Single bit set
+
+Mnemonic::
+```
+tio.bset{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x2 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x0 },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.bclr
+
+Synopsis::
+Single bit clear
+
+Mnemonic::
+```
+tio.bclr{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x2 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x1 },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.binv
+
+Synopsis::
+Single bit invert
+
+Mnemonic::
+```
+tio.binv{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x2 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x2 },
+ { bits: 1, name: 'iom' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.bext.xy
+
+Synopsis::
+Single bit extract from IO register
+
+Mnemonic::
+```
+tio.bext{bsel}.xy rd, ios1, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod/rd' },
+ { bits: 3, name: 0x2 },
+ { bits: 5, name: 'ios1/rs1' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 3, name: 0x6 },
+ { bits: 1, name: 0, attr: ['iom'] },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+
+=== XTightlyCoupledIOsbd
+
+Destructive single bit IO access instructions
+
+==== tio.bseti.y
+
+Synopsis::
+Destructive single bit set (immediate)
+
+Mnemonic::
+```
+tio.bseti{bsel}.y iod, shamt
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'shamt' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x0 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 6, name: 'shamt' },
+ { bits: 4, name: 0x0 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.bclri.y
+
+Synopsis::
+Destructive single bit clear (immediate)
+
+Mnemonic::
+```
+tio.bclri{bsel}.y iod, shamt
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'shamt' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x1 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 6, name: 'shamt' },
+ { bits: 4, name: 0x1 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.binvi.y
+
+Synopsis::
+Destructive single bit invert (immediate)
+
+Mnemonic::
+```
+tio.binvi{bsel}.y iod, shamt
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'shamt' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x2 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x7 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 6, name: 'shamt' },
+ { bits: 4, name: 0x2 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.bset.y
+
+Synopsis::
+Destructive single bit set
+
+Mnemonic::
+```
+tio.bset{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x6 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x0 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.bclr.y
+
+Synopsis::
+Destructive single bit clear
+
+Mnemonic::
+```
+tio.bclr{bsel}.y iod, rs2
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x6 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x1 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+==== tio.binv.y
+
+Synopsis::
+Destructive single bit invert
+
+Mnemonic::
+```
+tio.binv{bsel}.y iod, rs2
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x6 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 'rs2' },
+ { bits: 1, name: 0 },
+ { bits: 4, name: 0x2 },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+=== XTightlyCoupledIObf
+
+IO bitfield instructions
+
+==== tio.bfinserti.yx
+
+Synopsis::
+Destructive bitfield insert into IO register (immediate)
+
+Mnemonic::
+```
+tio.bfinserti{bsel}.yx iod, rs1, shamt, len
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x0 },
+ { bits: 5, name: 'rs1' },
+ { bits: 5, name: 'offset' },
+ { bits: 5, name: 'len' },
+ { bits: 2, name: 'bsel' },
+]}
+....
+
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'iod' },
+ { bits: 3, name: 0x0 },
+ { bits: 5, name: 'rs1' },
+ { bits: 6, name: 'offset' },
+ { bits: 6, name: 'len' },
+]}
+....
+
+NOTE: rv64 encoding could tradeoff the extra len/offset range similarly to branches
+
+==== tio.bfextracti.xy
+
+Synopsis::
+extract bitfield from IO register
+
+Mnemonic::
+```
+tio.bfextracti{bsel}.xy rd, ios1, offset, len
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x0 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1' },
- { bits: 5, name: 'shamt' },
- { bits: 5, name: 0x8 },
+ { bits: 5, name: 'offset' },
+ { bits: 5, name: 'len' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -1424,15 +2101,53 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x0 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'ios1' },
- { bits: 6, name: 'shamt' },
- { bits: 4, name: 0x4 },
+ { bits: 6, name: 'offset' },
+ { bits: 6, name: 'len' },
+]}
+....
+
+NOTE: instruction is equivalent to `tio.slli` + `srli` sequence
+
+==== tio.sbfextracti.xy
+
+Synopsis::
+extract and sign extend bitfield from IO register
+
+Mnemonic::
+```
+tio.sbfextracti{bsel}.xy rd, ios1, offset, len
+```
+
+Encoding (RV32)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0x2 },
+ { bits: 5, name: 'ios1' },
+ { bits: 5, name: 'offset' },
+ { bits: 5, name: 'len' },
  { bits: 2, name: 'bsel' },
 ]}
 ....
 
-NOTE: on rv64 `tio.bexti` can reach the upper 32 bits in addition to `tio.bsb*` instructions
+Encoding (RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 0x2 },
+ { bits: 5, name: 'ios1' },
+ { bits: 6, name: 'offset' },
+ { bits: 6, name: 'len' },
+]}
+....
+
+NOTE: instruction is equivalent to `tio.slli` + `srai` sequence
 
 === XTightlyCoupledIOsbbr
 
@@ -1452,9 +2167,9 @@ Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
+ { bits: 7, name: 0x7b, attr: ['CUSTOM-3'] },
  { bits: 5, name: 'imm[4:1|11]' },
- { bits: 2, name: 0x2 },
+ { bits: 2, name: 0x0 },
  { bits: 1, name: 'bsel' },
  { bits: 5, name: 'ios1' },
  { bits: 5, name: 'shamt' },
@@ -1478,9 +2193,9 @@ Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x0b, attr: ['CUSTOM-0'] },
+ { bits: 7, name: 0x7b, attr: ['CUSTOM-3'] },
  { bits: 5, name: 'imm[4:1|11]' },
- { bits: 2, name: 0x3 },
+ { bits: 2, name: 0x1 },
  { bits: 1, name: 'bsel' },
  { bits: 5, name: 'ios1' },
  { bits: 5, name: 'shamt' },
@@ -1490,131 +2205,74 @@ Encoding (RV32, RV64)::
 
 NOTE: only bottom 32 bits of target register are accessible on rv64
 
-=== XTightlyCoupledIObf
+=== XTightlyCoupledIOfcvt
 
-IO destructive bitfield insert
+implemented similarly to F or Zfinx fcvt instructions
 
-==== tio.bfinserti.yx
+NOTE: readings are often immediately converted to float for processing in control loop algorithms
+
+==== tio.fcvt.s.w.sy
 
 Synopsis::
-Destructive bitfield insert into IO register (immediate)
+Read IO register and convert to float
 
 Mnemonic::
 ```
-tio.bfinserti{bsel}.yx iod, rs1, shamt, len
+tio.fcvt{bsel}.s.w.sy rd, ios1, rm
 ```
 
-Encoding (RV32)::
+Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'iod' },
- { bits: 3, name: 0x1 },
- { bits: 5, name: 'rs1' },
- { bits: 5, name: 'offset' },
- { bits: 5, name: 'len' },
+ { bits: 7, name: 0x53, attr: ['OP-FP'] },
+ { bits: 5, name: 'rd' },
+ { bits: 3, name: 'rm' },
+ { bits: 5, name: 'ios1' },
+ { bits: 3, name: 0x4 },
  { bits: 2, name: 'bsel' },
+ { bits: 2, name: 'fmt', attr: ['S'] },
+ { bits: 5, name: 0x1a },
 ]}
 ....
 
-Encoding (RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'iod' },
- { bits: 2, name: 0x1 },
- { bits: 1, name: 'bsel' },
- { bits: 5, name: 'rs1' },
- { bits: 6, name: 'offset' },
- { bits: 6, name: 'len' },
-]}
-....
+Prerequisites::
+F or Zfinx
 
-NOTE: due to encoding constraints only destructive form is provided
-
-NOTE: rv64 encoding could tradeoff the extra len/offset range similarly to branches
-
-==== tio.bfextracti.xy
+==== tio.fcvt.s.wu.sy
 
 Synopsis::
-extract bitfield from IO register
+Read IO register and convert to float
 
 Mnemonic::
 ```
-tio.bfextracti{bsel}.xy rd, ios1, offset, len
+tio.fcvt{bsel}.s.wu.sy rd, ios1, rm
 ```
 
-Encoding (RV32)::
+Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 7, name: 0x53, attr: ['OP-FP'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x2 },
+ { bits: 3, name: 'rm' },
  { bits: 5, name: 'ios1' },
- { bits: 5, name: 'offset' },
- { bits: 5, name: 'len' },
+ { bits: 3, name: 0x5 },
  { bits: 2, name: 'bsel' },
+ { bits: 2, name: 'fmt', attr: ['S'] },
+ { bits: 5, name: 0x1a },
 ]}
 ....
 
-Encoding (RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'rd' },
- { bits: 2, name: 0x2 },
- { bits: 1, name: 'bsel' },
- { bits: 5, name: 'ios1' },
- { bits: 6, name: 'offset' },
- { bits: 6, name: 'len' },
-]}
-....
+Prerequisites::
+F or Zfinx
 
-NOTE: instruction is equivalent to `tio.slli` + `srli` sequence
+==== TODO: double precision and rv64
 
-==== tio.sbfextracti.xy
+==== TODO: float to int
 
-Synopsis::
-extract and sign extend bitfield from IO register
-
-Mnemonic::
-```
-tio.sbfextracti{bsel}.xy rd, ios1, offset, len
-```
-
-Encoding (RV32)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'rd' },
- { bits: 3, name: 0x3 },
- { bits: 5, name: 'ios1' },
- { bits: 5, name: 'offset' },
- { bits: 5, name: 'len' },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-Encoding (RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'rd' },
- { bits: 2, name: 0x3 },
- { bits: 1, name: 'bsel' },
- { bits: 5, name: 'ios1' },
- { bits: 6, name: 'offset' },
- { bits: 6, name: 'len' },
-]}
-....
-
-NOTE: instruction is equivalent to `tio.slli` + `srai` sequence
+potentially problematic to implement, as the float pipe 
+is usually longer than integer one
 
 === XTightlyCoupledIOcm
 
@@ -1674,14 +2332,14 @@ Zca
 
 NOTE: ios1 in rs2 position, the low bits store only rd' in C extension, maybe swap?
 
-==== tio.cm.bseti0.yy
+==== tio.cm.bseti0.y
 
 Synopsis::
 Set bit in IO register (immediate)
 
 Mnemonic::
 ```
-tio.cm.bseti0.yy iod, shamt
+tio.cm.bseti0.y iod, shamt
 ```
 
 Encoding (RV32, RV64)::
@@ -1690,7 +2348,7 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits:  2, name: 0x0, attr: ['C0'] },
  { bits:  5, name: 'shamt' },
- { bits:  5, name: 'ios1/iod' },
+ { bits:  5, name: 'iod' },
  { bits:  1, name: '0' },
  { bits:  3, name: 0x1, attr: ['FLD'] },
 ],config:{bits:16}}
@@ -1701,14 +2359,14 @@ Zca
 
 NOTE: only bottom 32 bits are accessible on rv64
 
-==== tio.cm.bclri0.yy
+==== tio.cm.bclri0.y
 
 Synopsis::
 Clear bit in IO register (immediate)
 
 Mnemonic::
 ```
-tio.cm.bclri0.yy iod, shamt
+tio.cm.bclri0.y iod, shamt
 ```
 
 Encoding (RV32, RV64)::
@@ -1717,7 +2375,7 @@ Encoding (RV32, RV64)::
 {reg:[
  { bits:  2, name: 0x0, attr: ['C0'] },
  { bits:  5, name: 'shamt' },
- { bits:  5, name: 'ios1/iod' },
+ { bits:  5, name: 'iod' },
  { bits:  1, name: '1' },
  { bits:  3, name: 0x1, attr: ['FLD'] },
 ],config:{bits:16}}
@@ -1727,76 +2385,6 @@ Prerequisites::
 Zca
 
 NOTE: only bottom 32 bits are accessible on rv64
-
-=== XTightlyCoupledIOfcvt
-
-implemented similarly to F or Zfinx fcvt instructions
-
-NOTE: readings are often immediately converted to float for processing in control loop algorithms
-
-==== tio.fcvt.s.w.sy
-
-Synopsis::
-Read IO register and convert to float
-
-Mnemonic::
-```
-tio.fcvt{bsel}.s.w.sy rd, ios1, rm
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-3'] },
- { bits: 5, name: 'rd' },
- { bits: 3, name: 'rm' },
- { bits: 5, name: 'ios1' },
- { bits: 5, name: 0x0 },
- { bits: 2, name: 'fmt', attr: ['S'] },
- { bits: 3, name: 0x0 },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-Prerequisites::
-F or Zfinx
-
-==== tio.fcvt.s.wu.sy
-
-Synopsis::
-Read IO register and convert to float
-
-Mnemonic::
-```
-tio.fcvt{bsel}.s.wu.sy rd, ios1, rm
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-3'] },
- { bits: 5, name: 'rd' },
- { bits: 3, name: 'rm' },
- { bits: 5, name: 'ios1' },
- { bits: 5, name: 0x1 },
- { bits: 2, name: 'fmt', attr: ['S'] },
- { bits: 3, name: 0x0 },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-Prerequisites::
-F or Zfinx
-
-==== TODO: double precision and rv64
-//need to reduce duplication
-
-==== TODO: float to int
-
-potentially problematic to implement, as the float pipe 
-is usually longer than integer one
 
 [appendix]
 == code samples
@@ -1894,10 +2482,10 @@ init_clocks():
 	tio.addi FLASH_ACR, zero, (FLASH_ACR_PRFTBE_Msk | (FLASH_ACR_LATENCY_Msk & 0b001))
 	lui t0, %hi(RCC_CFGR_PLLMUL12)
 	tio.cm.mv RCC_CFGR, t0 // no need for addi
-	tio.bseti RCC_CR, RCC_CR, RCC_CR_PLLON_Pos
+	tio.bseti RCC_CR, RCC_CR_PLLON_Pos
 1:
 	tio.bsbclri RCC_CR1, RCC_CR_PLLRDY_Pos, 1b
-	tio.bseti RCC_CFGR, RCC_CFGR, RCC_CFGR_SW_PLL_Pos+1 // effectively 0b10
+	tio.bseti RCC_CFGR, RCC_CFGR_SW_PLL_Pos+1 // effectively 0b10
 	c.li t1, RCC_CFGR_SWS_PLL
 2:
 	tio.bfextracti t0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
@@ -2040,7 +2628,7 @@ init_clocks2():
         .word   1073881088
 ```
 
-NOTE: gcc fails to detect `bfi` from constant pattern generally (clang exists in armv7-a version only)
+NOTE: gcc fails to detect `bfi` from constant pattern generally
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
@@ -2060,7 +2648,7 @@ init_clocks2():
 	tio.bsbseti RCC_CR, RCC_CR_PLLRDY_Pos, 3b
 	c.li a0, (RCC_CFGR_PLLMUL12 >> RCC_CFGR_PLLMUL_Pos) // 0b1010
 	tio.bfinserti RCC_CFGR, a0, RCC_CFGR_PLLMUL_Pos, 4
-	tio.bseti RCC_CR, RCC_CR, RCC_CR_PLLON_Pos
+	tio.bseti RCC_CR, RCC_CR_PLLON_Pos
 4:
 	tio.bsbclri, RCC_CR, RCC_CR_PLLRDY_Pos, 4b
 	tio.bfinserti RCC_CFGR, t1, RCC_CFGR_SW_Pos, 4 // can recycle a0, if t1 is not available (due to bnei)

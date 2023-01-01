@@ -18,8 +18,9 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.0.1  | fixed wavedrom rendering
 | v2.0.0  | major rework of encodings, the '.yy' is now destructive `.y` form,
-            removed `tio.slt`/`tio.sgt` instructions, shuffled subetensions
+            removed `tio.slt`/`tio.sgt` instructions, shuffled subetensions,
             added reg-reg single bit instructions, minor fixes
 | v1.0.39 | added tio implementation of second pll config, some fixes
 | v1.0.38 | properly implemented init_clocks2()
@@ -1273,6 +1274,9 @@ Mnemonic::
 tio.andn{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
@@ -1283,6 +1287,7 @@ tio.andn{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
  { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
+....
 
 ==== tio.orn
 
@@ -1291,6 +1296,9 @@ Mnemonic::
 tio.orn{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
@@ -1301,6 +1309,7 @@ tio.orn{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
  { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
+....
 
 ==== tio.xnor
 
@@ -1309,6 +1318,9 @@ Mnemonic::
 tio.xnor{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
@@ -1319,6 +1331,7 @@ tio.xnor{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
  { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
+....
 
 ==== tio.min
 
@@ -1327,6 +1340,9 @@ Mnemonic::
 tio.min{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
@@ -1337,6 +1353,7 @@ tio.min{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
  { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
+....
 
 ==== tio.minu
 
@@ -1345,6 +1362,9 @@ Mnemonic::
 tio.minu{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
@@ -1355,6 +1375,7 @@ tio.minu{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
  { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
+....
 
 ==== tio.max
 
@@ -1363,6 +1384,9 @@ Mnemonic::
 tio.max{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
@@ -1373,6 +1397,7 @@ tio.max{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
  { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
+....
 
 ==== tio.maxu
 
@@ -1381,6 +1406,9 @@ Mnemonic::
 tio.maxu{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
@@ -1391,6 +1419,7 @@ tio.maxu{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
  { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
+....
 
 ==== tio.rev8
 
@@ -1399,6 +1428,9 @@ Mnemonic::
 tio.rev8{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
 ```
 
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
 {reg:[
  { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
  { bits: 5, name: 'iod/rd' },
@@ -1409,6 +1441,7 @@ tio.rev8{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
  { bits: 1, name: 'iom' },
  { bits: 2, name: 'bsel' },
 ]}
+....
 
 === XTightlyCoupledIObbd
 
@@ -2209,7 +2242,7 @@ NOTE: only bottom 32 bits of target register are accessible on rv64
 
 implemented similarly to F or Zfinx fcvt instructions
 
-NOTE: readings are often immediately converted to float for processing in control loop algorithms
+NOTE: ADC readings are often immediately converted to float for processing in control loop algorithms
 
 ==== tio.fcvt.s.w.sy
 

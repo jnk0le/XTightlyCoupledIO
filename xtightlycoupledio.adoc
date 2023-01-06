@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.1.2
+:appversion: 2.1.3
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.1.3  | consistently apply compression for all `tio.bseti`/`tio.bclri`
 | v2.1.2  | added 7segment init sample
 | v2.1.1  | minor editorial improvements
 | v2.1.0  | added `tio.beq` and `tio.bne`
@@ -2572,10 +2573,10 @@ init_clocks():
 	tio.addi FLASH_ACR, zero, (FLASH_ACR_PRFTBE | (FLASH_ACR_LATENCY_Msk & 0b001))
 	lui t0, %hi(RCC_CFGR_PLLMUL12)
 	tio.cm.mv RCC_CFGR, t0 // no need for addi
-	tio.bseti RCC_CR, RCC_CR_PLLON_Pos
+	tio.cm.bseti RCC_CR, RCC_CR_PLLON_Pos
 1:
 	tio.bsbclri RCC_CR1, RCC_CR_PLLRDY_Pos, 1b
-	tio.bseti RCC_CFGR, RCC_CFGR_SW_PLL_Pos+1 // effectively 0b10
+	tio.cm.bseti RCC_CFGR, RCC_CFGR_SW_PLL_Pos+1 // effectively 0b10
 	c.li t1, RCC_CFGR_SWS_PLL
 2:
 	tio.bfextracti t0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
@@ -2733,12 +2734,12 @@ init_clocks2():
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
 	c.bnez a0, 1b
 2:
-	tio.bclri RCC_CR, RCC_CR, RCC_CR_PLLON_Pos
+	tio.cm.bclri RCC_CR, RCC_CR_PLLON_Pos
 3:
 	tio.bsbseti RCC_CR, RCC_CR_PLLRDY_Pos, 3b
 	c.li a0, (RCC_CFGR_PLLMUL12 >> RCC_CFGR_PLLMUL_Pos) // 0b1010
 	tio.bfinserti RCC_CFGR, a0, RCC_CFGR_PLLMUL_Pos, 4
-	tio.bseti RCC_CR, RCC_CR_PLLON_Pos
+	tio.cm.bseti RCC_CR, RCC_CR_PLLON_Pos
 4:
 	tio.bsbclri, RCC_CR, RCC_CR_PLLRDY_Pos, 4b
 	tio.bfinserti RCC_CFGR, t1, RCC_CFGR_SW_Pos, 4 // can recycle a0, if t1 is not available (due to bnei)
@@ -2905,10 +2906,10 @@ risc-v + XTightlyCoupledIO::
 init_7seg():
 	lui t0, %hi(RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOFEN)
 	tio.or RCC_AHBENR, t0
-	tio.bseti GPIOB_MODER, GPIO_MODER_MODER1_Pos // '0' bit doesn't matter in oring
+	tio.cm.bseti GPIOB_MODER, GPIO_MODER_MODER1_Pos // '0' bit doesn't matter in oring
 	c.li t0, (0b01 << GPIO_MODER_MODER0_Pos) | (0b01 << GPIO_MODER_MODER1_Pos)
 	tio.or GPIOF_MODER, t0
-	tio.bseti GPIOA_MODER, GPIO_MODER_MODER9_Pos // '0' bit doesn't matter in oring
+	tio.cm.bseti GPIOA_MODER, GPIO_MODER_MODER9_Pos // '0' bit doesn't matter in oring
 	tio.addi GPIOB_BSRR, zero, GPIO_BSRR_BS_1 // can also bseti from x0
 	tio.addi GPIOF_BSRR, zero, (GPIO_BSRR_BS_0 | GPIO_BSRR_BS_1)
 	tio.addi GPIOA_BSRR, zero, GPIO_BSRR_BS_9 // can also bseti from x0
@@ -2916,7 +2917,7 @@ init_7seg():
 	tio.addi GPIOA_MODER, t0, %lo(0b01010101010101)
 	c.li t0, -1
 	tio.srli GPIOA_OSPEEDR, t0, 16
-	tio.bseti RCC_APB2ENR, RCC_APB2ENR_TIM16EN_Pos
+	tio.cm.bseti RCC_APB2ENR, RCC_APB2ENR_TIM16EN_Pos
 	//c.li t1, 1 // UIE and CEN, 2 bytes smaller at higher reg presure
 	//tio.cm.mv TIM16_DIER, t1
 	tio.addi TIM16_DIER, zero, TIM_DIER_UIE // can also bseti from x0

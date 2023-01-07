@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.1.3
+:appversion: 2.1.4
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.1.4  | fixed 7segment tio code
 | v2.1.3  | consistently apply compression for all `tio.bseti`/`tio.bclri`
 | v2.1.2  | added 7segment init sample
 | v2.1.1  | minor editorial improvements
@@ -2913,16 +2914,17 @@ init_7seg():
 	tio.addi GPIOB_BSRR, zero, GPIO_BSRR_BS_1 // can also bseti from x0
 	tio.addi GPIOF_BSRR, zero, (GPIO_BSRR_BS_0 | GPIO_BSRR_BS_1)
 	tio.addi GPIOA_BSRR, zero, GPIO_BSRR_BS_9 // can also bseti from x0
-	lui t0, %hi(0b01010101010101)
-	tio.addi GPIOA_MODER, t0, %lo(0b01010101010101)
+	c.lui t0, %hi(0b01010101010101)
+	addi t0, %lo(0b01010101010101)
+	tio.or GPIOA_MODER, t0
 	c.li t0, -1
-	tio.srli GPIOA_OSPEEDR, t0, 16
+	tio.bfinserti GPIOA_OSPEEDR, t0, 0, 16 // equiv to or
 	tio.cm.bseti RCC_APB2ENR, RCC_APB2ENR_TIM16EN_Pos
 	//c.li t1, 1 // UIE and CEN, 2 bytes smaller at higher reg presure
 	//tio.cm.mv TIM16_DIER, t1
 	tio.addi TIM16_DIER, zero, TIM_DIER_UIE // can also bseti from x0
 	lui t0, %hi(47999)
-	tio.addi TIM16_ARR, zero, %lo(47999)
+	tio.addi TIM16_ARR, t0, %lo(47999)
 	//tio.cm.mv TIM16_CR1, t1
 	tio.addi TIM16_CR1, zero, TIM_CR1_CEN // can also bseti from x0
 	ret

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.1.4
+:appversion: 2.1.5
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.1.5  | better sequence for inverted single bit, other improvements
 | v2.1.4  | fixed 7segment tio code
 | v2.1.3  | consistently apply compression for all `tio.bseti`/`tio.bclri`
 | v2.1.2  | added 7segment init sample
@@ -244,16 +245,20 @@ NOTE: still available in first alternative approach as well as ABI deviations on
 
 Useful to directly store or load IO content to/from memory without processing.
 It is also non deterministic and can trap due to e.g. alignment or pmp restrictions, violating atomicity guarantee.
+Those also would consume a lot of encoding space.
 
 ==== IO with multiply/multiply-accumulate
+
+Usefull for fixed point arithmetic scaling etc.
 
 Sometimes multi cycle, non deterministic.
 
 Even single cycle implementations are potentially problematic to implement as 
 the multiplier can span more pipeline stages than regular ALUs.
 
-NOTE: `tio.mul.xy` should still be quite possible for fixed point arithmetic scaling, if the 
-`mulh` is necessary the `tio.mul` becomes useless 
+NOTE: if the `mulh` is necessary the `tio.mul` becomes useless 
+
+NOTE: P ext like, `tio.mull.xy` with destination register pair should still be possible 
 
 ==== inverted single bit constant
 
@@ -268,16 +273,14 @@ tio.addi iod, zero, (~(1<<pos))
 Otherwise we can achieve this in 2 instructions:
 
 ```
-lui t0, %hi(~(1<<pos))
+lui t0, %hi(~(1<<pos)) // 'c.' if bit 16-12 zeoroed 
 tio.addi iod, t0, %lo(~(1<<pos))
 ```
 or
 ```
-bseti t0, zero, shamt
-tio.xnor iod, zero, t0
+c.li t0, -1
+tio.bclri iod, t0, pos
 ```
-
-NOTE: Normally `xori rd, rs1, -1` is used for inversion.
 
 == programmers model
 

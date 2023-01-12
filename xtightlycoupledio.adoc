@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.1.6
+:appversion: 2.1.7
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.1.7  | 47999 is upper compressible
 | v2.1.6  | added simple pin toggle sample
 | v2.1.5  | better sequence for inverted single bit, other improvements
 | v2.1.4  | fixed 7segment tio code
@@ -2970,7 +2971,7 @@ init_7seg():
 	//c.li t1, 1 // UIE and CEN, 2 bytes smaller at higher reg presure
 	//tio.cm.mv TIM16_DIER, t1
 	tio.addi TIM16_DIER, zero, TIM_DIER_UIE // can also bseti from x0
-	lui t0, %hi(47999)
+	c.lui t0, %hi(47999)
 	tio.addi TIM16_ARR, t0, %lo(47999)
 	//tio.cm.mv TIM16_CR1, t1
 	tio.addi TIM16_CR1, zero, TIM_CR1_CEN // can also bseti from x0

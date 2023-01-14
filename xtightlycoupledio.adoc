@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.1.7
+:appversion: 2.1.8
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.1.8  | cm0+ single cycle IO
 | v2.1.7  | 47999 is upper compressible
 | v2.1.6  | added simple pin toggle sample
 | v2.1.5  | better sequence for inverted single bit, other improvements
@@ -181,11 +182,13 @@ special instructions for:
 - set/clear bit
 - branch if bit is set/cleared
 
-==== ti c2/f2
+==== ti c2000
 
 <<spracw5a>> claims 2 cycles for ADC reg to float, Fig 4-3 claims 3x cycle speedup over cortex m4 (stm32g4)
 
-==== ???
+==== cortex m0+ single cycle IO
+
+Uses exactly the same code of memory mapped IO but the loads and stores execute in 1 cycle instead of 2 cycles
 
 === alternative approaches
 

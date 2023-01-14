@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.1.8
+:appversion: 2.2.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.2.0  | added `tio.beqi.x` and `tio.bnei.x`
 | v2.1.8  | cm0+ single cycle IO
 | v2.1.7  | 47999 is upper compressible
 | v2.1.6  | added simple pin toggle sample
@@ -671,6 +672,71 @@ Encoding (RV64)::
 NOTE: due to encoding constraints only destructive form is provided
 
 NOTE: instruction was proposed for P extension as there are many more rd destructive ones 
+
+=== XTightlyCoupledIOsuppbri
+
+Supplementary instructions for branching against immediate
+
+Necessary for branching on exact pattern match of extracted bitfields.
+
+NOTE: xpulp does signed immediate in rs2 position, meanwhile Zce v0.50 puts nzuimm in rs1 position
+
+NOTE: `uimm=0` can be expressed with `beq/bne zero, rs2, label` therefore this case can
+be reserved or mapped to other constant
+
+NOTE: `uimm` from rs1 position was selected as it is already used by `csrr*i` as well as `vsetivli` instructions
+
+NOTE: usefull also for lowering general code size and register pressure (for e.g. rv32e or IPRA compilation), 
+
+==== tio.beqi.x
+
+Synopsis::
+Branch if equal (immediate)
+
+Mnemonic::
+```
+tio.beqi.x rs2, uimm, label
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x63, attr: ['BRANCH'] },
+ { bits: 5, name: 'imm[4:1|11]' },
+ { bits: 3, name: 0x2 },
+ { bits: 5, name: 'uimm[4:0]' },
+ { bits: 5, name: 'rs2' },
+ { bits: 7, name: 'imm[12|10:5]' },
+]}
+....
+
+The `uimm=0` is mapped into `-1` constant.
+
+==== tio.bnei.x
+
+Synopsis::
+Branch if not equal (immediate)
+
+Mnemonic::
+```
+tio.bnei.x rs2, uimm, label
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x63, attr: ['BRANCH'] },
+ { bits: 5, name: 'imm[4:1|11]' },
+ { bits: 3, name: 0x3 },
+ { bits: 5, name: 'uimm[4:0]' },
+ { bits: 5, name: 'rs2' },
+ { bits: 7, name: 'imm[12|10:5]' },
+]}
+....
+
+The `uimm=0` is mapped into `-1` constant.
 
 === XTightlyCoupledIOaddi
 
@@ -2629,13 +2695,11 @@ init_clocks():
 1:
 	tio.bsbclri RCC_CR1, RCC_CR_PLLRDY_Pos, 1b
 	tio.cm.bseti RCC_CFGR, RCC_CFGR_SW_PLL_Pos+1 // effectively 0b10
-	c.li t1, RCC_CFGR_SWS_PLL
 2:
 	tio.bfextracti t0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	bne t0, t1, 2b // can do bnei in this scenario
+	tio.bnei.x t0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 2b // can do bnei in this scenario
 	ret
 ```
-
 
 === stm32f0 minimum PLL clock init (assume unknown or "worst case" state of registers)
 
@@ -2778,9 +2842,8 @@ risc-v + XTightlyCoupledIO::
 ```
 init_clocks2():
 	tio.addi FLASH_ACR, zero, (FLASH_ACR_PRFTBE | (FLASH_ACR_LATENCY_Msk & 0b001))
-	c.li t1, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos) // SW and SWS use same encodings, reuse later
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	bne a0, t1, 2f // can do bnei in this scenario
+	tio.bnei.x a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 2f
 	tio.bfinserti RCC_CFGR, zero, RCC_CFGR_SW_Pos, 2
 1:
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
@@ -2789,15 +2852,15 @@ init_clocks2():
 	tio.cm.bclri RCC_CR, RCC_CR_PLLON_Pos
 3:
 	tio.bsbseti RCC_CR, RCC_CR_PLLRDY_Pos, 3b
-	c.li a0, (RCC_CFGR_PLLMUL12 >> RCC_CFGR_PLLMUL_Pos) // 0b1010
+	c.li a0, (RCC_CFGR_PLLMUL12 >> RCC_CFGR_PLLMUL_Pos) // 0b1010 
 	tio.bfinserti RCC_CFGR, a0, RCC_CFGR_PLLMUL_Pos, 4
 	tio.cm.bseti RCC_CR, RCC_CR_PLLON_Pos
 4:
 	tio.bsbclri, RCC_CR, RCC_CR_PLLRDY_Pos, 4b
-	tio.bfinserti RCC_CFGR, t1, RCC_CFGR_SW_Pos, 4 // can recycle a0, if t1 is not available (due to bnei)
+	tio.bfinserti RCC_CFGR, a0, RCC_CFGR_SW_Pos, 2 // can recycle a0 
 5:
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	bne a0, t1, 5b // can do bnei in this scenario
+	tio.bnei.x a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 5b // can do bnei in this scenario
 	ret
 ```
 

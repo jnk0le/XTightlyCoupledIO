@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.2.1
+:appversion: 2.3.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.3.0  | use `.xi` suffix for reg-imm beqi
 | v2.2.1  | added description to less obvious instructions, some fixes
 | v2.2.0  | added `tio.beqi.x` and `tio.bnei.x`
 | v2.1.8  | cm0+ single cycle IO
@@ -691,14 +692,14 @@ NOTE: `uimm` from rs1 position was selected as it is already used by `csrr*i` as
 
 NOTE: usefull also for lowering general code size and register pressure (for e.g. rv32e or IPRA compilation), 
 
-==== tio.beqi.x
+==== tio.beqi.xi
 
 Synopsis::
 Branch if equal (immediate)
 
 Mnemonic::
 ```
-tio.beqi.x rs2, uimm, label
+tio.beqi.xi rs2, uimm, label
 ```
 
 Encoding (RV32, RV64)::
@@ -718,14 +719,14 @@ Description::
 Branch to `label` if rs2 content is equal to expanded 'uimm[4:0]' constant.
 The `uimm=0` is mapped into `-1` constant.
 
-==== tio.bnei.x
+==== tio.bnei.xi
 
 Synopsis::
 Branch if not equal (immediate)
 
 Mnemonic::
 ```
-tio.bnei.x rs2, uimm, label
+tio.bnei.xi rs2, uimm, label
 ```
 
 Encoding (RV32, RV64)::
@@ -2704,7 +2705,7 @@ init_clocks():
 	tio.cm.bseti RCC_CFGR, RCC_CFGR_SW_PLL_Pos+1 // effectively 0b10
 2:
 	tio.bfextracti t0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	tio.bnei.x t0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 2b
+	tio.bnei.xi t0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 2b
 	ret
 ```
 
@@ -2850,7 +2851,7 @@ risc-v + XTightlyCoupledIO::
 init_clocks2():
 	tio.addi FLASH_ACR, zero, (FLASH_ACR_PRFTBE | (FLASH_ACR_LATENCY_Msk & 0b001))
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	tio.bnei.x a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 2f
+	tio.bnei.xi a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 2f
 	tio.bfinserti RCC_CFGR, zero, RCC_CFGR_SW_Pos, 2
 1:
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
@@ -2867,7 +2868,7 @@ init_clocks2():
 	tio.bfinserti RCC_CFGR, a0, RCC_CFGR_SW_Pos, 2 // can recycle a0 
 5:
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	tio.bnei.x a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 5b // can do bnei in this scenario
+	tio.bnei.xi a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 5b // can do bnei in this scenario
 	ret
 ```
 

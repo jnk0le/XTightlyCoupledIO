@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.4.1
+:appversion: 2.4.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.4.2  | update appendix with new bitield instructions
 | v2.4.1  | missing bsel, typo fix
 | v2.4.0  | added bitfield insert from immediate
 | v2.3.0  | use `.xi` suffix for reg-imm beqi
@@ -2948,12 +2949,11 @@ init_clocks2():
 	tio.cm.bclri RCC_CR, RCC_CR_PLLON_Pos
 3:
 	tio.bsbseti RCC_CR, RCC_CR_PLLRDY_Pos, 3b
-	c.li a0, (RCC_CFGR_PLLMUL12 >> RCC_CFGR_PLLMUL_Pos) // 0b1010 
-	tio.bfinserti RCC_CFGR, a0, RCC_CFGR_PLLMUL_Pos, 4
+	tio.bfinserti RCC_CFGR, (RCC_CFGR_PLLMUL12 >> RCC_CFGR_PLLMUL_Pos), RCC_CFGR_PLLMUL_Pos, 4
 	tio.cm.bseti RCC_CR, RCC_CR_PLLON_Pos
 4:
 	tio.bsbclri, RCC_CR, RCC_CR_PLLRDY_Pos, 4b
-	tio.bfinserti RCC_CFGR, a0, RCC_CFGR_SW_Pos, 2 // can recycle a0 
+	tio.bfinserti RCC_CFGR, (RCC_CFGR_SW_PLL >> RCC_CFGR_SW_PLL_Pos), RCC_CFGR_SW_Pos, 2 // can recycle a0 
 5:
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
 	tio.bnei.xi a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 5b // can do bnei in this scenario
@@ -3127,8 +3127,7 @@ init_7seg():
 	c.lui t0, %hi(0b01010101010101)
 	addi t0, %lo(0b01010101010101)
 	tio.or GPIOA_MODER, t0
-	c.li t0, -1
-	tio.bfinserti GPIOA_OSPEEDR, t0, 0, 16 // equiv to or
+	tio.bfinserti GPIOA_OSPEEDR, -1, 0, 16 // equiv to or
 	tio.cm.bseti RCC_APB2ENR, RCC_APB2ENR_TIM16EN_Pos
 	//c.li t1, 1 // UIE and CEN, 2 bytes smaller at higher reg presure
 	//tio.cm.mv TIM16_DIER, t1

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.4.2
+:appversion: 2.5.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.5.0  | initial memory model
 | v2.4.2  | update appendix with new bitield instructions
 | v2.4.1  | missing bsel, typo fix
 | v2.4.0  | added bitfield insert from immediate
@@ -329,13 +330,21 @@ For more efficient use of IO register space available by certain instructions.
 
 Not reflecting actual memory mapped registers.
 
-==== TODO: multi core atomicity etc.
+==== memory model of IO access
 
-Core vs DMA is a likely scenario. +
-In C the above RMW operation is non atomic. The tio instructions can do atomic RMW what 
-could lead to abuse of observed behaviour (bugs when porting from tio to non-tio mcu)
+The access to IO registers by `tio.` instructions follows the TSO moemory model with respect to each other.
+The repeated accesses to the same IO register is sequentially consistent.
 
-==== TODO: memory model of IO access
+NOTE: TSO model is the best fit for typicall in-order pipelines longer than 2-3 stages
+
+NOTE: implementations cannot reuse operand forwarding to solve RAW hazards of IO registers
+due to `volatile` rules
+
+Access to IO registers by `tio.` instructions and memory mapped interface is not synchronized.
+
+NOTE: it would be too expensive to sync read-ALU-writeback stages with memory interface
+
+NOTE: implementations are still free to microcode `tio.` instructions using memory load and store
 
 === automatic mapping of memory mapped registers to tightly coupled registers
 
@@ -2953,10 +2962,10 @@ init_clocks2():
 	tio.cm.bseti RCC_CR, RCC_CR_PLLON_Pos
 4:
 	tio.bsbclri, RCC_CR, RCC_CR_PLLRDY_Pos, 4b
-	tio.bfinserti RCC_CFGR, (RCC_CFGR_SW_PLL >> RCC_CFGR_SW_PLL_Pos), RCC_CFGR_SW_Pos, 2 // can recycle a0 
+	tio.bfinserti RCC_CFGR, (RCC_CFGR_SW_PLL >> RCC_CFGR_SW_PLL_Pos), RCC_CFGR_SW_Pos, 2
 5:
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	tio.bnei.xi a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 5b // can do bnei in this scenario
+	tio.bnei.xi a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 5b
 	ret
 ```
 

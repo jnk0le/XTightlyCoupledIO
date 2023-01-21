@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.5.0
+:appversion: 2.5.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.5.1  | fixed naming of bitfield positions in samples
 | v2.5.0  | initial memory model
 | v2.4.2  | update appendix with new bitield instructions
 | v2.4.1  | missing bsel, typo fix
@@ -2800,10 +2801,10 @@ init_clocks():
 	tio.cm.bseti RCC_CR, RCC_CR_PLLON_Pos
 1:
 	tio.bsbclri RCC_CR1, RCC_CR_PLLRDY_Pos, 1b
-	tio.cm.bseti RCC_CFGR, RCC_CFGR_SW_PLL_Pos+1 // effectively 0b10
+	tio.cm.bseti RCC_CFGR, RCC_CFGR_SW_Pos+1 // effectively 0b10
 2:
 	tio.bfextracti t0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	tio.bnei.xi t0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 2b
+	tio.bnei.xi t0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 2b
 	ret
 ```
 
@@ -2941,7 +2942,7 @@ init_clocks2():
         .word   1073881088
 ```
 
-NOTE: gcc fails to detect `bfi` from constant pattern generally
+NOTE: gcc fails to detect `bfi` from constant, pattern generally
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
@@ -2949,7 +2950,7 @@ risc-v + XTightlyCoupledIO::
 init_clocks2():
 	tio.addi FLASH_ACR, zero, (FLASH_ACR_PRFTBE | (FLASH_ACR_LATENCY_Msk & 0b001))
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	tio.bnei.xi a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 2f
+	tio.bnei.xi a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 2f
 	tio.bfinserti RCC_CFGR, zero, RCC_CFGR_SW_Pos, 2
 1:
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
@@ -2962,10 +2963,10 @@ init_clocks2():
 	tio.cm.bseti RCC_CR, RCC_CR_PLLON_Pos
 4:
 	tio.bsbclri, RCC_CR, RCC_CR_PLLRDY_Pos, 4b
-	tio.bfinserti RCC_CFGR, (RCC_CFGR_SW_PLL >> RCC_CFGR_SW_PLL_Pos), RCC_CFGR_SW_Pos, 2
+	tio.bfinserti RCC_CFGR, (RCC_CFGR_SW_PLL >> RCC_CFGR_SW_Pos), RCC_CFGR_SW_Pos, 2
 5:
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	tio.bnei.xi a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_PLL_Pos), 5b
+	tio.bnei.xi a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 5b
 	ret
 ```
 

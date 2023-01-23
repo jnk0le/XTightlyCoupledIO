@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.6.0
+:appversion: 2.6.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.6.1  | added PIO prior
 | v2.6.0  | added sideOPdelay subextension
 | v2.5.1  | fixed naming of bitfield positions in samples
 | v2.5.0  | initial memory model
@@ -198,6 +199,14 @@ special instructions for:
 ==== cortex m0+ single cycle IO
 
 Uses exactly the same code of memory mapped IO but the loads and stores execute in 1 cycle instead of 2 cycles
+
+==== PIO (in RP2040)
+
+Reffered to as a programmable state machine, able to emulate serial and parallel
+peripherals over GPIO. Very limited instruction set.
+
+Assumes cycle accurate, single cycle micro architecture.+
+Has an optional "side-set" operiation and delay which stall execution of any following instruction.
 
 === alternative approaches
 
@@ -486,7 +495,7 @@ doesn't provide bitwise and/or/xor in its early ALU
 NOTE: the move to/from IO registeris are not named as `in` and `out`
 as I find those names confusing
 
-=== sideOP
+==== sideOP
 
 sideOP value can be optionally encoded by value placed in square brackets that is 
 placed after the last instruction param, separated by comma.

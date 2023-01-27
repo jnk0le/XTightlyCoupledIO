@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.6.2
+:appversion: 2.7.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.7.0  | added relaxation section, supplementary instrs can also pseudoinstr
 | v2.6.2  | added rationale for removal of .yy encodings
 | v2.6.1  | added PIO prior
 | v2.6.0  | added sideOPdelay subextension
@@ -308,7 +309,7 @@ tio.bclri iod, t0, pos
 
 ==== non destructive io-io-reg instructions
 
-Low use cases of independent io-reg to io-reg moves/ops.
+Low use cases of independent io to io moves/ops.
 
 Low flexibility of implementations, as the non destructive ops cannot 
 provide AMO like decoupled execution.
@@ -477,7 +478,7 @@ NOTE: letter y was picked totally arbitrarily as it's single letter and doesn't 
 Pseudoinstructions use the `io` name prefix as the register specifier with
 linearized addressing.
 
-NOTE: supplementary instructions are not covered by this as there is no io register reference
+The supplementary instructions with omitted suffix are also considered as pseudoinstructions.
 
 ```
 tio.bseti io107, 13 // set bit 13 in io 11 register in bank 3
@@ -506,6 +507,18 @@ doesn't provide bitwise and/or/xor in its early ALU
 NOTE: the move to/from IO registeris are not named as `in` and `out`
 as I find those names confusing
 
+==== code relaxation (aka compression)
+
+Only the pseudo instructions are allowed to be relaxed into a different
+instruction, be it compressed or different one of the same size.
+
+NOTE: BTW, this is how it should be done with base riscv instructions
+where e.g. `i.add a0, a0, a1` must alway emit exactly specified encoding
+and `add a0, a0, a1` can be relaxed to compressed instruction or a different one
+(e.g. `bseti a0, a1, 11` can be turned into `ori a0, a1, (1<<11)` for assumed,
+better execution units availability).
+For now we have only the unreliable and bloaty `.option norvc` workaround.
+
 ==== sideOP
 
 sideOP value can be optionally encoded by value placed in square brackets that is 
@@ -526,7 +539,7 @@ usage::
 4:	tio.bseti GPIOA_ODR, 13, [sideset 0b10, 7] // imaginary extension
 ```
 
-NOTE: Square bracket was selected as MIPS syntax inherited by RISC-V doesn't use square brackets.
+NOTE: Square bracket was selected as MIPS syntax inherited by RISC-V doesn't use those.
 
 NOTE: pioasm use it for delay only, not separated by comma from rest of the instruction params.
 
@@ -2881,7 +2894,7 @@ init_clocks():
 	tio.cm.bseti RCC_CFGR, RCC_CFGR_SW_Pos+1 // effectively 0b10
 2:
 	tio.bfextracti t0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	tio.bnei.xi t0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 2b
+	tio.bnei t0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 2b
 	ret
 ```
 
@@ -3027,11 +3040,11 @@ risc-v + XTightlyCoupledIO::
 init_clocks2():
 	tio.addi FLASH_ACR, zero, (FLASH_ACR_PRFTBE | (FLASH_ACR_LATENCY_Msk & 0b001))
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	tio.bnei.xi a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 2f
+	tio.bnei a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 2f
 	tio.bfinserti RCC_CFGR, zero, RCC_CFGR_SW_Pos, 2
 1:
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	c.bnez a0, 1b
+	c.bnez a0, 1b // needs x8-x15 register
 2:
 	tio.cm.bclri RCC_CR, RCC_CR_PLLON_Pos
 3:
@@ -3043,7 +3056,7 @@ init_clocks2():
 	tio.bfinserti RCC_CFGR, (RCC_CFGR_SW_PLL >> RCC_CFGR_SW_Pos), RCC_CFGR_SW_Pos, 2
 5:
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
-	tio.bnei.xi a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 5b
+	tio.bnei a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 5b
 	ret
 ```
 

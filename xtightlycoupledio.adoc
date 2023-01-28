@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.7.1
+:appversion: 2.7.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.7.2  | avr io address space is smaller than 8051 SFRs
 | v2.7.1  | added 8051 prior and extra avr8 commentary
 | v2.7.0  | added relaxation section, supplementary instrs can also pseudoinstr
 | v2.6.2  | added rationale for removal of .yy encodings
@@ -191,7 +192,6 @@ like the 8051 did. Even though it could offer better PPA and development ease th
 Today we have only a few chinese clones of atmega328p due to expired patents. +
 <<doc1292>> compares various architectures over presumably pure 8bit applications.
 It is unknown if peripherals in io address space was used on avr.
-The 8051 frequently comes with peripherals mapped in XRAM address space which is even less eficient to access.
 
 ==== ti PRU (in beaglebone sbcs)
 

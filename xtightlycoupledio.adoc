@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.7.3
+:appversion: 2.7.4
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.7.4  | some of 8051 SFRs are preoccupied
 | v2.7.3  | fixed bibliography links
 | v2.7.2  | avr io address space is smaller than 8051 SFRs
 | v2.7.1  | added 8051 prior and extra avr8 commentary
@@ -226,7 +227,8 @@ SFRs are not available by indirect addressing as it targets the "hidden" SRAM.
 
 0x20-0x2F memory range is bit-addressable.
 8 vertical (0x80, 0x88, 0x90...) SFR registers are bit addressable.
-Accumulator `A` is also bit-addressable SFR.
+Some of them are pre-occupied by (mandatory) standard SFRs, including the accumulator `A` and
+less usefull `B`.
 
 bit-addressable registers can be operated by special irregular instructions:
 

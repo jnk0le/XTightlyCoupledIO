@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.8.0
+:appversion: 2.8.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.8.1  | fixed offset field name in bfinserti.yx
 | v2.8.0  | added fence interop
 | v2.7.4  | some of 8051 SFRs are preoccupied
 | v2.7.3  | fixed bibliography links
@@ -2318,7 +2319,7 @@ Destructive bitfield insert into IO register (immediate)
 
 Mnemonic::
 ```
-tio.bfinserti{bsel}.yx iod, rs1, shamt, len
+tio.bfinserti{bsel}.yx iod, rs1, offset, len
 ```
 
 Encoding (RV32)::

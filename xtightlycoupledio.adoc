@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.7.4
+:appversion: 2.8.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v2.8.0  | added fence interop
 | v2.7.4  | some of 8051 SFRs are preoccupied
 | v2.7.3  | fixed bibliography links
 | v2.7.2  | avr io address space is smaller than 8051 SFRs
@@ -383,7 +384,7 @@ Not reflecting actual memory mapped registers.
 
 ==== memory model of IO access
 
-The access to IO registers by `tio.` instructions follows the TSO moemory model with respect to each other.
+The access to IO registers by `tio.` instructions, follows the TSO moemory model with respect to each other.
 The repeated accesses to the same IO register is sequentially consistent.
 
 NOTE: TSO model is the best fit for typicall in-order pipelines longer than 2-3 stages
@@ -396,6 +397,15 @@ Access to IO registers by `tio.` instructions and memory mapped interface is not
 NOTE: it would be too expensive to sync read-ALU-writeback stages with memory interface
 
 NOTE: implementations are still free to microcode `tio.` instructions using memory load and store
+
+==== `fence` interop
+
+`fence` instruction orders access of `tio.` instructions using the PI/PO/SI/SO fields. +
+RMW operation is interpreted as combined read and write.
+
+It must also properly order `tio.` accesses with respect to memory mapped IO, that use the same PI/PO/SI/SO fields.
+
+NOTE: it was decided to not extend `fence` instruction, due to limited use cases
 
 === automatic mapping of memory mapped registers to tightly coupled registers
 

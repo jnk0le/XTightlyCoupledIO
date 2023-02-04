@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.0.0
+:appversion: 3.0.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,8 +18,9 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v3.0.1  | fixed typos
 | v3.0.0  | rework of encodings, removed destructive shifts and `beq.y`/`bne.y`
-            canonical move int IO uses rs2 foe symmetry with compressed encoding
+            canonical move into IO uses rs2 for symmetry with compressed encoding
 | v2.8.1  | fixed offset field name in bfinserti.yx
 | v2.8.0  | added fence interop
 | v2.7.4  | some of 8051 SFRs are preoccupied
@@ -1650,7 +1651,7 @@ Encoding (RV32, RV64)::
 
 Mnemonic::
 ```
-tio.max{bsel}.y iod, rs2
+tio.maxu{bsel}.y iod, rs2
 ```
 
 Encoding (RV32, RV64)::

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 2.8.1
+:appversion: 3.0.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,8 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v3.0.0  | rework of encodings, removed destructive shifts and `beq.y`/`bne.y`
+            canonical move int IO uses rs2 foe symmetry with compressed encoding
 | v2.8.1  | fixed offset field name in bfinserti.yx
 | v2.8.0  | added fence interop
 | v2.7.4  | some of 8051 SFRs are preoccupied
@@ -529,7 +531,7 @@ tio.bseti io86, zero, 17 // write (1<<17) to io 22 register in bank 2
 The following instructions are designated as a canonical IO move instructions:
 
 ```
-tio.add{n}.yx iod, rs1, zero
+tio.add{n}.yx iod, zero, rs2
 tio.add{n}.xy rd, ios1, zero
 ```
 
@@ -620,9 +622,9 @@ Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x7b, attr: ['CUSTOM-3'] },
  { bits: 5, name: 'imm[4:1|11]' },
- { bits: 3, name: 0x3 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'shamt' },
  { bits: 7, name: 'imm[12|10:5]' },
@@ -647,9 +649,9 @@ Encoding (RV32, RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
+ { bits: 7, name: 0x7b, attr: ['CUSTOM-3'] },
  { bits: 5, name: 'imm[4:1|11]' },
- { bits: 3, name: 0x4 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'shamt' },
  { bits: 7, name: 'imm[12|10:5]' },
@@ -676,7 +678,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x5 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -690,7 +692,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x5 },
+ { bits: 3, name: 0x2 },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -715,7 +717,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x6 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -729,7 +731,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x6 },
+ { bits: 3, name: 0x3 },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -761,7 +763,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x7 },
+ { bits: 3, name: 0x0 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -775,7 +777,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x7 },
+ { bits: 3, name: 0x0 },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -800,9 +802,9 @@ Encoding (RV32)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0xb, attr: ['CUSTOM-0'] },
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x7 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'uimm[4:0]' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -814,9 +816,9 @@ Encoding (RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0xb, attr: ['CUSTOM-0'] },
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x7 },
+ { bits: 3, name: 0x1 },
  { bits: 5, name: 'uimm[4:0]' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -1330,180 +1332,6 @@ Encoding (RV32, RV64)::
  { bits: 5, name: 'sideOP' },
  { bits: 5, name: 'rs2' },
  { bits: 5, name: 0x4 },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.slli.y
-
-Mnemonic::
-```
-tio.slli{bsel}.y iod, shamt
-```
-
-Encoding (RV32)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'iod' },
- { bits: 3, name: 0x7 },
- { bits: 5, name: 'sideOP' },
- { bits: 5, name: 'shamt' },
- { bits: 1, name: 0 },
- { bits: 4, name: 0x3 },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-Encoding (RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'iod' },
- { bits: 3, name: 0x7 },
- { bits: 5, name: 'sideOP' },
- { bits: 6, name: 'shamt' },
- { bits: 4, name: 0x3 },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.srli.y
-
-Mnemonic::
-```
-tio.srli{bsel}.y iod, shamt
-```
-
-Encoding (RV32)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'iod' },
- { bits: 3, name: 0x7 },
- { bits: 5, name: 'sideOP' },
- { bits: 5, name: 'shamt' },
- { bits: 1, name: 0 },
- { bits: 4, name: 0x4 },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-Encoding (RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'iod' },
- { bits: 3, name: 0x7 },
- { bits: 5, name: 'sideOP' },
- { bits: 6, name: 'shamt' },
- { bits: 4, name: 0x4 },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.srai.y
-
-Mnemonic::
-```
-tio.srai{bsel}.y iod, shamt
-```
-
-Encoding (RV32)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'iod' },
- { bits: 3, name: 0x7 },
- { bits: 5, name: 'sideOP' },
- { bits: 5, name: 'shamt' },
- { bits: 1, name: 0 },
- { bits: 4, name: 0x5 },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-Encoding (RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'iod' },
- { bits: 3, name: 0x7 },
- { bits: 5, name: 'sideOP' },
- { bits: 6, name: 'shamt' },
- { bits: 4, name: 0x5 },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.sll.y
-
-Mnemonic::
-```
-tio.sll{bsel}.y iod, rs2
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'iod' },
- { bits: 3, name: 0x6 },
- { bits: 5, name: 'sideOP' },
- { bits: 5, name: 'rs2' },
- { bits: 1, name: 0 },
- { bits: 4, name: 0x3 },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.srl.y
-
-Mnemonic::
-```
-tio.srl{bsel}.y iod, rs2
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'iod' },
- { bits: 3, name: 0x6 },
- { bits: 5, name: 'sideOP' },
- { bits: 5, name: 'rs2' },
- { bits: 1, name: 0 },
- { bits: 4, name: 0x4 },
- { bits: 2, name: 'bsel' },
-]}
-....
-
-==== tio.sra.y
-
-Mnemonic::
-```
-tio.sra{bsel}.y iod, rs2
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
- { bits: 5, name: 'iod' },
- { bits: 3, name: 0x6 },
- { bits: 5, name: 'sideOP' },
- { bits: 5, name: 'rs2' },
- { bits: 1, name: 0 },
- { bits: 4, name: 0x5 },
  { bits: 2, name: 'bsel' },
 ]}
 ....
@@ -2328,7 +2156,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod' },
- { bits: 3, name: 0x0 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'rs1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -2342,7 +2170,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod' },
- { bits: 3, name: 0x0 },
+ { bits: 3, name: 0x4 },
  { bits: 5, name: 'rs1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -2365,9 +2193,9 @@ Encoding (RV32)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0xb, attr: ['CUSTOM-0'] },
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod' },
- { bits: 3, name: 0x6 },
+ { bits: 3, name: 0x5 },
  { bits: 5, name: 'uimm[4:0]' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -2379,9 +2207,9 @@ Encoding (RV64)::
 [wavedrom, , svg]
 ....
 {reg:[
- { bits: 7, name: 0xb, attr: ['CUSTOM-0'] },
+ { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'iod' },
- { bits: 3, name: 0x6 },
+ { bits: 3, name: 0x5 },
  { bits: 5, name: 'uimm[4:0]' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -2410,7 +2238,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x1 },
+ { bits: 3, name: 0x6 },
  { bits: 5, name: 'ios1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -2424,7 +2252,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x1 },
+ { bits: 3, name: 0x6 },
  { bits: 5, name: 'ios1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -2449,7 +2277,7 @@ Encoding (RV32)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x2 },
+ { bits: 3, name: 0x7 },
  { bits: 5, name: 'ios1' },
  { bits: 5, name: 'offset' },
  { bits: 5, name: 'len' },
@@ -2463,7 +2291,7 @@ Encoding (RV64)::
 {reg:[
  { bits: 7, name: 0x5b, attr: ['CUSTOM-2'] },
  { bits: 5, name: 'rd' },
- { bits: 3, name: 0x2 },
+ { bits: 3, name: 0x7 },
  { bits: 5, name: 'ios1' },
  { bits: 6, name: 'offset' },
  { bits: 6, name: 'len' },
@@ -2527,52 +2355,6 @@ Encoding (RV32, RV64)::
 ....
 
 NOTE: only bottom 32 bits of target register are accessible on rv64
-
-=== XTightlyCoupledIObr
-
-branch on IO register instructions
-
-==== tio.beq.y
-
-Mnemonic::
-```
-tio.beq{bsel}.y ios1, rs2, label
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x7b, attr: ['CUSTOM-3'] },
- { bits: 5, name: 'imm[4:1|11]' },
- { bits: 2, name: 0x2 },
- { bits: 1, name: 'bsel' },
- { bits: 5, name: 'ios1' },
- { bits: 5, name: 'rs2' },
- { bits: 7, name: 'imm[12|10:5]' },
-]}
-....
-
-==== tio.bne.y
-
-Mnemonic::
-```
-tio.bne{bsel}.y ios1, rs2, label
-```
-
-Encoding (RV32, RV64)::
-[wavedrom, , svg]
-....
-{reg:[
- { bits: 7, name: 0x7b, attr: ['CUSTOM-3'] },
- { bits: 5, name: 'imm[4:1|11]' },
- { bits: 2, name: 0x3 },
- { bits: 1, name: 'bsel' },
- { bits: 5, name: 'ios1' },
- { bits: 5, name: 'rs2' },
- { bits: 7, name: 'imm[12|10:5]' },
-]}
-....
 
 === XTightlyCoupledIOfcvt
 
@@ -2671,8 +2453,6 @@ Encoding (RV32, RV64)::
 
 Prerequisites::
 Zca
-
-NOTE: not symmetric with canonical move
 
 ==== tio.cm.mv.xy
 

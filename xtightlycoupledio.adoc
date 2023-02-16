@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.0.1
+:appversion: 3.0.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v3.0.2  | added rationale against `bfp` from bitmanip 0.94
 | v3.0.1  | fixed typos
 | v3.0.0  | rework of encodings, removed destructive shifts and `beq.y`/`bne.y`
             canonical move into IO uses rs2 for symmetry with compressed encoding
@@ -117,7 +118,7 @@ This spec was created solely because we would have to wait for proprietary one o
 
 And if we are talking about proprietary extensions, they are usually:
 
-- Done wrong, mainly because specs are created on tight deadlines without community feedback
+- Done wrong, mainly because those specs are created on tight deadlines without community feedback
 (like the severely missing instructions in XTheadBs)
 - Not done at all (the most obvious and common approach)
 - Those specs also almost never see an outside word and if they do, they are very badly 
@@ -348,7 +349,50 @@ Low flexibility of implementations, as the non destructive ops cannot
 provide AMO like decoupled execution.
 
 NOTE: Destructive encodings are also justified by a bitfield insert instructions,
-possible only within destructive encoding. 
+possible only within destructive encoding.
+
+==== `bfp` from 0.94 bitmanip
+
+Requires 4 instruction sequence to insert a constant.
+Let's consider followng sample:
+
+[source,C]
+```
+// switch PLL (0b10) to HSE (0b01)
+RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW_Msk) | (RCC_CFGR_SW_HSE);
+```
+
+using bfp:
+[source,asm]
+```
+li t1, RCC_CFGR_SW_HSE
+addi t0, zero, {length[3:0], offset[7:0]}
+pack t0, t1, t0
+bfp a0, a0, t0
+```
+
+In best case scenario it can be done in 2 instructions:
+[source,asm]
+```
+andi a0, a0, ~RCC_CFGR_SW_Msk
+ori a0, a0, RCC_CFGR_SW_HSE
+```
+
+Alternatively a more general sequence (4-6 instructions):
+[source,asm]
+```
+li a1, RCC_CFGR_SW_Msk // non inverted can be a single lui
+andn a0, a0, a1 // use ~RCC_CFGR_SW_Msk for and, when Zbb is missing
+li a1, RCC_CFGR_SW_HSE
+or a0, a0, a1
+```
+
+Can use `bseti` or `bclri` to cover a single bit in a field (avoid loading constants).
+
+In <<packetprocriscv>>, `bfp` didn't yield enough improvement.
+
+> It would be more efficient if the offset and length of the field could be given
+> as immediate values, so that the preparatory setup steps aren’t needed.
 
 == programmers model
 
@@ -3064,3 +3108,4 @@ init_7seg():
 
 * [[[doc1292, 1]]] https://web.archive.org/web/20111213030633/http://www.atmel.com/dyn/resources/prod_documents/DOC1292.PDF
 * [[[spracw5a, 2]]] https://www.ti.com/lit/an/spracw5a/spracw5a.pdf
+* [[[packetprocriscv, 3]]] https://liu.diva-portal.org/smash/get/diva2:1636414/FULLTEXT01.pdf

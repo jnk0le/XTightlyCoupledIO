@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.0.3
+:appversion: 3.0.4
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,7 +18,8 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
-| v3.0.3  | add section bout MMIO less peripheral registers
+| v3.0.4  | typos fix
+| v3.0.3  | add section about MMIO less peripheral registers
 | v3.0.2  | added rationale against `bfp` from bitmanip 0.94
 | v3.0.1  | fixed typos
 | v3.0.0  | rework of encodings, removed destructive shifts and `beq.y`/`bne.y`
@@ -539,8 +540,8 @@ it can be:
 
 ==== peripherals without memory mapped interface
 
-It is possible to have SFRs that are not mapped to memory address space which are used by special 
-`\\__attribute__\`, but this prevents use of a pointers to such peripherals.
+It is possible to have SFRs that are not mapped to memory address space which are used by e.g. special 
+`\\__attribute__`, but this prevents use of pointers to such peripherals.
 
 Pointers are often used to avoid code duplication and resulting size increase <<moteusadcfix>>.
 (even wrt. `tio` access, in some scenarios)

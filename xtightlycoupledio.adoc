@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.0.4
+:appversion: 3.0.5
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v3.0.5  | considered scenario can be also done in `bseti`+`bclri`
 | v3.0.4  | typos fix
 | v3.0.3  | add section about MMIO less peripheral registers
 | v3.0.2  | added rationale against `bfp` from bitmanip 0.94
@@ -380,6 +381,13 @@ andi a0, a0, ~RCC_CFGR_SW_Msk
 ori a0, a0, RCC_CFGR_SW_HSE
 ```
 
+or in considered scenario:
+[source,asm]
+```
+bseti a0, a0, RCC_CFGR_SW_Pos
+bclri a0, a0, RCC_CFGR_SW_Pos+1
+```
+
 Alternatively a more general sequence (4-6 instructions):
 [source,asm]
 ```
@@ -389,7 +397,7 @@ li a1, RCC_CFGR_SW_HSE
 or a0, a0, a1
 ```
 
-Can use `bseti` or `bclri` to cover a single bit in a field (avoid loading constants).
+Can use `bseti` or `bclri` to cover a single bit in a field and avoid loading constants.
 
 In <<packetprocriscv>>, `bfp` didn't yield enough improvement.
 

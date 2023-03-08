@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.0.2
+:appversion: 3.0.3
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v3.0.3  | add section bout MMIO less peripheral registers
 | v3.0.2  | added rationale against `bfp` from bitmanip 0.94
 | v3.0.1  | fixed typos
 | v3.0.0  | rework of encodings, removed destructive shifts and `beq.y`/`bne.y`
@@ -535,6 +536,16 @@ it can be:
 ** can overide default cost function of above option
 ** variable is not forced into scratch register if specific criteria is not met
 ** no longer relaxable to gp-rel load/stores
+
+==== peripherals without memory mapped interface
+
+It is possible to have SFRs that are not mapped to memory address space which are used by special 
+`\\__attribute__\`, but this prevents use of a pointers to such peripherals.
+
+Pointers are often used to avoid code duplication and resulting size increase <<moteusadcfix>>.
+(even wrt. `tio` access, in some scenarios)
+
+NOTE: still suitable for cases of a dedicated IO slave cores.
 
 === assembly syntax
 
@@ -3109,3 +3120,4 @@ init_7seg():
 * [[[doc1292, 1]]] https://web.archive.org/web/20111213030633/http://www.atmel.com/dyn/resources/prod_documents/DOC1292.PDF
 * [[[spracw5a, 2]]] https://www.ti.com/lit/an/spracw5a/spracw5a.pdf
 * [[[packetprocriscv, 3]]] https://liu.diva-portal.org/smash/get/diva2:1636414/FULLTEXT01.pdf
+* [[[moteusadcfix, 4]]] https://github.com/mjbots/moteus/commit/a398d0c4fde08ea5a585bbf0d53da6be422e0915

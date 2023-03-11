@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.0.6
+:appversion: 3.0.7
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v3.0.7  | improved MMIO less chapter
 | v3.0.6  | improved citations
 | v3.0.5  | considered scenario can be also done in `bseti`+`bclri`
 | v3.0.4  | typos fix
@@ -556,9 +557,11 @@ It is possible to have SFRs that are not mapped to memory address space which ar
 `\\__attribute__`, but this prevents use of pointers to such peripherals.
 
 Pointers are often used to avoid code duplication and resulting size increase <<moteusadcfix>>.
-(even wrt. `tio` access, in some scenarios)
+(even wrt. `tio` access, in some scenarios). Those are also commonly used in various HALs. +
+Compilers could theoretically track and translate the pointer useage, but it will finally
+lead to highly inefficient code in corner or even regular cases.
 
-NOTE: still suitable for cases of a dedicated IO slave cores.
+NOTE: still suitable for a dedicated IO slave cores.
 
 === assembly syntax
 

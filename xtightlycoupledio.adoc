@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.0.5
+:appversion: 3.0.6
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v3.0.6  | improved citations
 | v3.0.5  | considered scenario can be also done in `bseti`+`bclri`
 | v3.0.4  | typos fix
 | v3.0.3  | add section about MMIO less peripheral registers
@@ -199,19 +200,22 @@ the upper part is populated only by the "CPU"
 //???? in the old avr or xmega (explicitly in source code)
 
 It is also worth to mention that avr8 architecture has not been licensed to 3rd parties
-like the 8051 did. Even though it could offer better PPA and development ease than average "1T" 8051.
-Today we have only a few chinese clones of atmega328p due to expired patents. +
-<<doc1292>> compares various architectures over presumably pure 8bit applications.
-It is unknown if peripherals in io address space was used on avr.
+like the 8051 did. Even though it could offer better PPA <<doc1292>> and development ease than average "1T" 8051.
+Today we have only a few chinese clones of atmega328p due to expired patents.
 
-==== ti PRU (in beaglebone sbcs)
+==== ti PRU 
 
-only the GPIO pins are mapped to r30 and r31 register.
+Proprietary TI RISC architecture <<spruij2>>. Popularized in beaglebone sbcs
+
+Only the GPIO pins are mapped to `r30` and `r31` register, though sometimes there is a mux
+on `r30`/`r31` interfaces with e.g. MII or shift registers <<am335xPRU>> (5.2.2)
 
 special instructions for:
 
 - set/clear bit
 - branch if bit is set/cleared
+
+Source and destinstion operands can independently address their bytes and half-words.
 
 ==== ti c2000
 
@@ -3127,6 +3131,9 @@ init_7seg():
 == Bibliography
 
 * [[[doc1292, 1]]] https://web.archive.org/web/20111213030633/http://www.atmel.com/dyn/resources/prod_documents/DOC1292.PDF
-* [[[spracw5a, 2]]] https://www.ti.com/lit/an/spracw5a/spracw5a.pdf
-* [[[packetprocriscv, 3]]] https://liu.diva-portal.org/smash/get/diva2:1636414/FULLTEXT01.pdf
-* [[[moteusadcfix, 4]]] https://github.com/mjbots/moteus/commit/a398d0c4fde08ea5a585bbf0d53da6be422e0915
+* [[[spruij2, 2]]] https://www.ti.com/lit/ug/spruij2/spruij2.pdf?ts=1678361442691&ref_url=https%253A%252F%252Fwww.google.com%252F
+* [[[am335xPRU, 3]]] https://mythopoeic.org/BBB-PRU/am335xPruReferenceGuide.pdf
+* [[[spracw5a, 4]]] https://www.ti.com/lit/an/spracw5a/spracw5a.pdf
+* [[[packetprocriscv, 5]]] https://liu.diva-portal.org/smash/get/diva2:1636414/FULLTEXT01.pdf
+* [[[moteusadcfix, 6]]] https://github.com/mjbots/moteus/commit/a398d0c4fde08ea5a585bbf0d53da6be422e0915
+

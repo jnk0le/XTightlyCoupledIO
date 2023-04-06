@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.0.9
+:appversion: 3.1.0
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v3.1.0  | added `tio.nop` and `tio.nop.sideattach`
 | v3.0.9  | minor improvements
 | v3.0.8  | add note about volatile bitfield insertion
 | v3.0.7  | improved MMIO less chapter
@@ -2638,6 +2639,58 @@ example of generating 50:50 square wave with 64 cycle period::
 ```
 
 //should be in appendix?
+
+==== tio.nop
+
+This instruction doesn't access any IO register, but it causes pipeline contention
+as if it was a read-modify-write on IO register.
+
+Mnemonic::
+```
+tio.nop
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 0x0 },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 0x0 },
+ { bits: 5, name: 0xc },
+ { bits: 2, name: 0x0 },
+]}
+....
+
+==== tio.nop.sideattach
+
+In opposition to `tio.nop` it doesn't cause pipelie contention, but instead
+attaches its own `sideOP` to a next IO accessing `tio` instruction.
+
+Cannot be overriden by itself, only the last `sideattach` instruction is effective
+
+NOTE: requires special CSR to hold attached `sideOP`
+
+Mnemonic::
+```
+tio.nop.sideattach
+```
+
+Encoding (RV32, RV64)::
+[wavedrom, , svg]
+....
+{reg:[
+ { bits: 7, name: 0x2b, attr: ['CUSTOM-1'] },
+ { bits: 5, name: 0x0 },
+ { bits: 3, name: 0x5 },
+ { bits: 5, name: 'sideOP' },
+ { bits: 5, name: 0x0 },
+ { bits: 5, name: 0xd },
+ { bits: 2, name: 0x0 },
+]}
+....
 
 ==== TODO: delay vs interrupts
 

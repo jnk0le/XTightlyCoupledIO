@@ -3202,4 +3202,3 @@ init_7seg():
 * [[[spracw5a, 4]]] https://www.ti.com/lit/an/spracw5a/spracw5a.pdf
 * [[[packetprocriscv, 5]]] https://liu.diva-portal.org/smash/get/diva2:1636414/FULLTEXT01.pdf
 * [[[moteusadcfix, 6]]] https://github.com/mjbots/moteus/commit/a398d0c4fde08ea5a585bbf0d53da6be422e0915
-

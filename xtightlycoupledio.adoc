@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.1
+:appversion: 3.2.2
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v3.2.2  | typo
 | v3.2.1  | extended c2000 analysis
 | v3.2.0  | improved sideattach syntax, extra notes
 | v3.1.0  | added `tio.nop` and `tio.nop.sideattach`
@@ -228,7 +229,7 @@ Source and destinstion operands can independently address their bytes and half-w
 <<spracw5a>> claims 2 cycles for ADC reg to float, Fig 4-3 claims 3x cycle speedup over cortex m4 (stm32g4)
 
 Peripherals can be accessed using indirect (XAR pointer registers) or DP addressing 
-(16bit + 6bit offset from instr). Provides AMO-ALU instruction as well as integer to float conversions.
+(16bit + 6bit offset from instr). Provide AMO-ALU instructions as well as integer to float conversions.
 
 The CLA can convert to float directly from memory (including peripherals)
 

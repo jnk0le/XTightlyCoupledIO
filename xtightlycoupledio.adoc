@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.0
+:appversion: 3.2.1
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v3.2.1  | extended c2000 analysis
 | v3.2.0  | improved sideattach syntax, extra notes
 | v3.1.0  | added `tio.nop` and `tio.nop.sideattach`
 | v3.0.9  | minor improvements
@@ -225,6 +226,11 @@ Source and destinstion operands can independently address their bytes and half-w
 ==== ti c2000
 
 <<spracw5a>> claims 2 cycles for ADC reg to float, Fig 4-3 claims 3x cycle speedup over cortex m4 (stm32g4)
+
+Peripherals can be accessed using indirect (XAR pointer registers) or DP addressing 
+(16bit + 6bit offset from instr). Provides AMO-ALU instruction as well as integer to float conversions.
+
+The CLA can convert to float directly from memory (including peripherals)
 
 ==== cortex m0+ single cycle IO
 
@@ -3193,6 +3199,80 @@ init_7seg():
 	ret
 ```
 
+=== c2000 samples
+
+samples from c2000 related documents <<c2000workshop>>
+
+"#define approach"::
+[source, C]
+```
+// Stop CPU Timer0
+*TIMER0TCR |= 0x0010;
+
+// Load new 32-bit period value
+*TIMER0TPRD32 = 0x00010000;
+
+// Start CPU Timer0
+*TIMER0TCR &= 0xFFEF;
+```
+
+"structure approach"::
+[source, C]
+```
+// Stop CPU Timer0
+CpuTimer0Regs.TCR.bit.TSS = 1;
+
+// Load new 32-bit period value
+CpuTimer0Regs.PRD.all = 0x00010000;
+
+// Start CPU Timer0
+CpuTimer0Regs.TCR.bit.TSS = 0;
+```
+
+c2000 "#define approach"::
+[source, asm]
+```
+MOV @AL,*(0:0x0C04)
+ORB AL, #0x10
+MOV *(0:0x0C04), @AL
+MOVL XAR5, #0x010000
+MOVL XAR4, #0x000C0A
+MOVL *+XAR4[0], XAR5
+MOV @AL, *(0:0x0C04)
+AND @AL, #0xFFEF
+MOV *(0:0x0C04), @AL
+```
+
+18 bytes and 9 cycles
+
+c2000 "structure approach"::
+[source, asm]
+```
+MOVW DP, #0030
+OR @4, #0x0010
+MOVL XAR4, #0x010000
+MOVL @2, XAR4
+AND @4, #0xFFEF
+```
+
+10 bytes and 5 cycles
+
+risc-v + XTightlyCoupledIO::
+[source, asm]
+```
+tio.cm.bseti TIMER0TCR, 4
+tio.bseti TIMER0TPRD32, zero, 16
+tio.cm.bclri TIMER0TCR, 4
+```
+
+8 bytes and 3 cycles (12 bytes if `tio.cm` is unavailable)
+
+NOTE: when using modern compiler (gcc,llvm), there should be no difference between
+defines and structures
+
+NOTE: type punning by union bitfields in C++ is UB and implementation 
+specified in C <<typepunninginc>>
+
 [bibliography]
 == Bibliography
 
@@ -3202,3 +3282,5 @@ init_7seg():
 * [[[spracw5a, 4]]] https://www.ti.com/lit/an/spracw5a/spracw5a.pdf
 * [[[packetprocriscv, 5]]] https://liu.diva-portal.org/smash/get/diva2:1636414/FULLTEXT01.pdf
 * [[[moteusadcfix, 6]]] https://github.com/mjbots/moteus/commit/a398d0c4fde08ea5a585bbf0d53da6be422e0915
+* [[[c2000workshop, 7]]] http://www.ee.iitb.ac.in/~ccgroup/old/Lab_pages/experiment_files/TI.pdf
+* [[[typepunninginc, 8]]] https://stackoverflow.com/questions/24542964/aliasing-type-punning-unions-structs-and-bit-fields-in-c99

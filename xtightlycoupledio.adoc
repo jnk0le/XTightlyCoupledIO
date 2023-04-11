@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.2
+:appversion: 3.2.3
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [width="100%",options=header]
 |====================================================================================
 | Version | change
+| v3.2.3  | corrected calculation of c2000 code sizes
 | v3.2.2  | typo
 | v3.2.1  | extended c2000 analysis
 | v3.2.0  | improved sideattach syntax, extra notes
@@ -3233,30 +3234,30 @@ CpuTimer0Regs.TCR.bit.TSS = 0;
 c2000 "#define approach"::
 [source, asm]
 ```
-MOV @AL,*(0:0x0C04)
-ORB AL, #0x10
-MOV *(0:0x0C04), @AL
-MOVL XAR5, #0x010000
-MOVL XAR4, #0x000C0A
-MOVL *+XAR4[0], XAR5
-MOV @AL, *(0:0x0C04)
-AND @AL, #0xFFEF
-MOV *(0:0x0C04), @AL
+MOV @AL,*(0:0x0C04)		;4
+ORB AL, #0x10			;2
+MOV *(0:0x0C04), @AL	;4
+MOVL XAR5, #0x010000	;4
+MOVL XAR4, #0x000C0A	;4
+MOVL *+XAR4[0], XAR5	;2
+MOV @AL, *(0:0x0C04)	;4
+AND @AL, #0xFFEF		;4
+MOV *(0:0x0C04), @AL	;4
 ```
 
-18 bytes and 9 cycles
+32 bytes and 9 cycles
 
 c2000 "structure approach"::
 [source, asm]
 ```
-MOVW DP, #0030
-OR @4, #0x0010
-MOVL XAR4, #0x010000
-MOVL @2, XAR4
-AND @4, #0xFFEF
+MOVW DP, #0030			;4
+OR @4, #0x0010			;4
+MOVL XAR4, #0x010000	;4
+MOVL @2, XAR4			;2
+AND @4, #0xFFEF			;4
 ```
 
-10 bytes and 5 cycles
+18 bytes (16 if `DP` can be done by `MOVZ`) and 5 cycles
 
 risc-v + XTightlyCoupledIO::
 [source, asm]

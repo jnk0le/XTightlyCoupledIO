@@ -37,7 +37,7 @@ jobs:
     - name: Setup Ruby and Gemfile content
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: "2.7"
+        ruby-version: "3.2"
         bundler-cache: true
     # Node.js for wavedrom
     - uses: actions/cache@v2
@@ -59,7 +59,6 @@ jobs:
     - name: Archive PDF result
       uses: actions/upload-artifact@v2
       with:
-#should this actually be result.pdf????
         name: XTightlyCoupledIO.pdf
         path: ${{ env.PDF_RESULT }}
         retention-days: 7

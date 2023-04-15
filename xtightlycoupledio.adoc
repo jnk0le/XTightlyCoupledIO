@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.3
+:appversion: 3.2.4
 :toc:
 :toclevels: 4
 :sectnums:
@@ -15,9 +15,10 @@ This document is released under a Creative Commons Attribution 4.0 International
 [colophon]
 == revision history
 
-[width="100%",options=header]
+[cols="1,5",options=header]
 |====================================================================================
 | Version | change
+| v3.2.4  | trim 1.0 from revision history, adjust column widths
 | v3.2.3  | corrected calculation of c2000 code sizes
 | v3.2.2  | typo
 | v3.2.1  | extended c2000 analysis
@@ -65,46 +66,6 @@ This document is released under a Creative Commons Attribution 4.0 International
 | v2.0.0  | major rework of encodings, the `.yy` is now destructive `.y` form,
             removed `tio.slt`/`tio.sgt` instructions, shuffled subetensions,
             added reg-reg single bit instructions, minor fixes
-| v1.0.39 | added tio implementation of second pll config, some fixes
-| v1.0.38 | properly implemented init_clocks2()
-| v1.0.37 | fixed FLASH_ACR setup
-| v1.0.36 | fixed mask gen for zoroed register
-| v1.0.35 | fixed mask clearing in sample
-| v1.0.34 | added tio sample for a first appendix scenario
-| v1.0.33 | initial appendix scanario placeholder
-| v1.0.32 | sync cm destructive specifier with C extension
-| v1.0.31 | cm instruction require Zca
-| v1.0.30 | rendering fix
-| v1.0.29 | various editorial improvements
-| v1.0.28 | typo fix
-| v1.0.27 | fixed bfinserti.xx encoding
-| v1.0.26 | moved inverted single bit into ommitted instructions
-| v1.0.25 | removed "rest of zbs" section
-| v1.0.24 | removed rsub section
-| v1.0.23 | moved note to more appropriate section
-| v1.0.22 | just execute atomially
-| v1.0.21 | fixed bsbseti/bsbclri instruction mnemonics
-| v1.0.20 | typo fix
-| v1.0.19 | typo fix
-| v1.0.18 | typo fix
-| v1.0.17 | improvements on volatile limitation notes
-| v1.0.16 | added section about AMO-op alt approach
-| v1.0.15 | fixed bfextracti.xy rv64 encoding
-| v1.0.14 | fixed mnemonic and rv64 encoding of tio.(s)bfextracti.xx instructions
-| v1.0.13 | improved rationale text
-| v1.0.12 | not probably mapped
-| v1.0.11 | avr io mapping is much simpler
-| v1.0.10 | finally fixed all wavedrom rendering issues
-| v1.0.9  | inverted single bit in one instruction
-| v1.0.8  | sync bsel description
-| v1.0.7  | fixed funct3 encodings of extract instructions
-| v1.0.6  | removed redundant note, improved spelling
-| v1.0.5  | add note about bit accesibility in bsb instructions
-| v1.0.4  | fixed wavedrom rendering
-| v1.0.3  | setup revision history table
-| v1.0.2  | typo fix
-| v1.0.1  | extra text about heavy constants
-| v1.0.0  | first public release
 |====================================================================================
 
 [colophon]

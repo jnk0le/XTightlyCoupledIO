@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.4
+:appversion: 3.2.5
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | change
+| v3.2.5  | more c2000 samples
 | v3.2.4  | trim 1.0 from revision history, adjust column widths
 | v3.2.3  | corrected calculation of c2000 code sizes
 | v3.2.2  | typo
@@ -3162,34 +3163,24 @@ init_7seg():
 	ret
 ```
 
-=== c2000 samples
+=== c2000 workshop sample
 
-samples from c2000 related documents <<c2000workshop>>
+from <<c2000workshop>>, page 3-5.
 
 "#define approach"::
 [source, C]
 ```
-// Stop CPU Timer0
-*TIMER0TCR |= 0x0010;
-
-// Load new 32-bit period value
-*TIMER0TPRD32 = 0x00010000;
-
-// Start CPU Timer0
-*TIMER0TCR &= 0xFFEF;
+*TIMER0TCR |= 0x0010; // Stop CPU Timer0
+*TIMER0TPRD32 = 0x00010000; // Load new 32-bit period value
+*TIMER0TCR &= 0xFFEF; // Start CPU Timer0
 ```
 
 "structure approach"::
 [source, C]
 ```
-// Stop CPU Timer0
-CpuTimer0Regs.TCR.bit.TSS = 1;
-
-// Load new 32-bit period value
-CpuTimer0Regs.PRD.all = 0x00010000;
-
-// Start CPU Timer0
-CpuTimer0Regs.TCR.bit.TSS = 0;
+CpuTimer0Regs.TCR.bit.TSS = 1; // Stop CPU Timer0
+CpuTimer0Regs.PRD.all = 0x00010000; // Load new 32-bit period value
+CpuTimer0Regs.TCR.bit.TSS = 0; // Start CPU Timer0
 ```
 
 c2000 "#define approach"::
@@ -3211,7 +3202,7 @@ MOV *(0:0x0C04), @AL	;4
 c2000 "structure approach"::
 [source, asm]
 ```
-MOVW DP, #0030			;4
+MOVW DP, #0030			;4/2?
 OR @4, #0x0010			;4
 MOVL XAR4, #0x010000	;4
 MOVL @2, XAR4			;2
@@ -3223,9 +3214,9 @@ AND @4, #0xFFEF			;4
 risc-v + XTightlyCoupledIO::
 [source, asm]
 ```
-tio.cm.bseti TIMER0TCR, 4
+tio.cm.bseti TIMER0TCR, TSS_Pos
 tio.bseti TIMER0TPRD32, zero, 16
-tio.cm.bclri TIMER0TCR, 4
+tio.cm.bclri TIMER0TCR, TSS_Pos
 ```
 
 8 bytes and 3 cycles (12 bytes if `tio.cm` is unavailable)
@@ -3235,6 +3226,236 @@ defines and structures
 
 NOTE: type punning by union bitfields in C++ is UB and implementation 
 specified in C <<typepunninginc>>
+
+=== c2000 "This is very efficient; there is a one-to-one correlation between C and assembly"
+
+from <<spraa85a>>, par 5.
+
+[source, C]
+```
+SysCtrlRegs.PCLKCR0.bit.rsvd1 = 0;
+SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 0;
+SysCtrlRegs.PCLKCR0.bit.ADCENCLK = 1;
+SysCtrlRegs.PCLKCR0.bit.I2CAENCLK = 1;
+SysCtrlRegs.PCLKCR0.bit.rsvd2 = 0;
+SysCtrlRegs.PCLKCR0.bit.SPICENCLK = 1;
+SysCtrlRegs.PCLKCR0.bit.SPIDENCLK = 1;
+SysCtrlRegs.PCLKCR0.bit.SPIAENCLK = 1;
+SysCtrlRegs.PCLKCR0.bit.SPIBENCLK = 1;
+SysCtrlRegs.PCLKCR0.bit.SCIAENCLK = 1;
+SysCtrlRegs.PCLKCR0.bit.SCIBENCLK = 0;
+SysCtrlRegs.PCLKCR0.bit.rsvd3 = 0;
+SysCtrlRegs.PCLKCR0.bit.ECANAENCLK= 1;
+SysCtrlRegs.PCLKCR0.bit.ECANBENCLK= 0;
+```
+
+c2000::
+[source, asm]
+```
+MOVW DP,#0x01C0
+AND @28,#0xFFFC
+AND @28,#0xFFFB
+OR @28,#0x0008
+OR @28,#0x0010
+AND @28,#0xFFDF
+OR @28,#0x0040
+OR @28,#0x0080
+OR @28,#0x0100
+OR @28,#0x0200
+OR @28,#0x0400
+AND @28,#0xF7FF
+AND @28,#0xCFFF
+OR @28,#0x4000
+AND @28,#0x7FFF
+```
+
+60 bytes (58 if `DP` can be done by `MOVZ`)
+
+NOTE: table 3 suggests it's 6 cycles per one AMO-ALU instruction
+
+risc-v + XTightlyCoupledIO::
+[source, asm]
+```
+tio.cm.bclri SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_rsvd1_Pos
+tio.cm.bclri SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_TBCLKSYNC_Pos
+tio.cm.bseti SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_ADCENCLK_Pos
+tio.cm.bseti SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_I2CAENCLK_Pos
+tio.cm.bclri SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_rsvd2_Pos
+tio.cm.bseti SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_SPICENCLK_Pos
+tio.cm.bseti SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_SPIDENCLK_Pos
+tio.cm.bseti SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_SPIAENCLK_Pos
+tio.cm.bseti SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_SPIBENCLK_Pos
+tio.cm.bseti SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_SCIAENCLK_Pos
+tio.cm.bclri SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_SCIBENCLK_Pos
+tio.cm.bclri SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_rsvd3_Pos
+tio.cm.bseti SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_ECANAENCLK_Pos
+tio.cm.bclri SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_ECANBENCLK_Pos
+```
+
+28 bytes (56 if `tio.cm` is unavailable)
+
+=== c2000 magic value less, whole register write
+
+from <<spraa85a>> par 5.
+
+using magic value::
+[source, C]
+```
+SysCtrlRegs.PCLKCR0.all = 0x47D8; 
+```
+
+using "shadow register"::
+[source, C]
+```
+// Enable only 2801 Peripheral Clocks
+union PCLKCR0_REG shadowPCLKCR0;
+
+shadowPCLKCR0.bit.rsvd1 = 0;
+shadowPCLKCR0.bit.TBCLKSYNC = 0;
+shadowPCLKCR0.bit.ADCENCLK = 1; // ADC
+shadowPCLKCR0.bit.I2CAENCLK = 1; // I2C
+shadowPCLKCR0.bit.rsvd2 = 0;
+shadowPCLKCR0.bit.SPICENCLK = 1; // SPI-C
+shadowPCLKCR0.bit.SPIDENCLK = 1; // SPI-D
+shadowPCLKCR0.bit.SPIAENCLK = 1; // SPI-A
+shadowPCLKCR0.bit.SPIBENCLK = 1; // SPI-B
+shadowPCLKCR0.bit.SCIAENCLK = 1; // SCI-A
+shadowPCLKCR0.bit.SCIBENCLK = 0; // SCI-B
+shadowPCLKCR0.bit.rsvd3 = 0;
+shadowPCLKCR0.bit.ECANAENCLK= 1; // eCAN-A
+shadowPCLKCR0.bit.ECANBENCLK= 0; // eCAN-B
+SysCtrlRegs.PCLKCR0.all = shadowPCLKCR0.all;
+```
+
+c2000 using magic value::
+[source, asm]
+```
+MOVW DP,#0x01C0
+MOV @28,#0x47D8
+```
+
+8 bytes (6 if `DP` can be done by `MOVZ`)
+
+c2000 using "shadow register"::
+[source, asm]
+```
+MOV @AL,#0x47D8
+MOVW DP,#0x01C0
+MOV @28,AL
+```
+
+10 bytes (8 if `DP` can be done by `MOVZ`)
+
+risc-v + XTightlyCoupledIO::
+[source, asm]
+```
+c.lui t0, %hi(0x47D8)
+tio.addi SysCtrl_PCLKCR0, t0, %lo(0x47D8)
+```
+
+6 bytes
+
+NOTE: when using modern compiler (gcc,llvm), there should be no difference between magic values
+and "shadow register".
+
+NOTE: usually vendors provide bitmask definitions for those bits so as to construct the write by
+oring them. e.g. `SysCtrl.PCLKCR0 = SysCtrl_PCLKCR0_ADCENCLK | SysCtrl_PCLKCR0_I2CAENCLK [...]`
+
+=== c2000 preserving write 1 to clear bits
+
+from <<spraa85a>> par 6.2.
+
+using "shadow register" to preserve TIF::
+[source, C]
+```
+union TCR_REG shadowTCR;
+// Use a shadow register to stop the timer
+// and preserve TIF (write 1-to-clear bit)
+shadowTCR.all = CpuTimer0Regs.TCR.all;
+shadowTCR.bit.TSS = 1;
+shadowTCR.bit.TIF = 0;
+CpuTimer0Regs.TCR.all = shadowTCR.all;
+
+// Check the TIF flag
+if(CpuTimer0Regs.TCR.bit.TIF == 1)
+{
+	// TIF set, insert action here
+	// NOP is only a place holder
+	asm("NOP");
+}
+```
+
+c2000::
+[source, asm]
+```
+	MOVW DP,#0x0030			;4/2?
+	MOV AL,@4				;2
+	ORB AL,#0x10			;2
+	MOVL XAR5,#0x000C00		;4
+	AND AL,@AL,#0x7FFF		;4
+	MOV *+XAR5[4],AL		;2
+	TBIT *+XAR5[4],#15		;4
+	SBF L1,NTC				;2 (7 bit forward range)
+	NOP						; placeholder
+L1:
+```
+
+24 bytes (22 if `DP` can be done by `MOVZ`)
+
+NOTE: "fast branches" are slower when used on waitstated memories (like flash) <<c2000fastbranch>>.
+The only slow branches are 32bit ones.
+
+risc-v + XTightlyCoupledIO::
+[source, asm]
+```
+	tio.bclri t0, CpuTimer0_TCR, CpuTimer0_TCR_TIF_Pos
+	tio.bseti CpuTimer0_TCR, t0, CpuTimer0_TCR_TSS_Pos
+	tio.bsbclri CpuTimer0_TCR, CpuTimer0_TCR_TIF_Pos, L1 // 12 bit range
+	nop // placeholder
+L1:
+```
+
+12 bytes
+
+NOTE: write 1 to clear bits are usually separated from control registers
+
+=== c2000 32bit only peripherals
+
+from <<spraa85a>> par 7.
+
+using "shadow register" to force 32bit access::
+[source, C]
+```
+union CANMC_REG shadowCANMC;
+
+// 32-bit read of CANMC
+shadowCANMC.all = ECanaRegs.CANMC.all;
+shadowCANMC.bit.SCB = 1;
+
+// 32-bit write of CANMC
+ECanaRegs.CANMC.all = shadowCANMC.all;
+```
+
+c2000::
+[source, asm]
+```
+MOVW DP,#0x0180	;4/2?
+MOVL ACC,@20	;2
+OR @AL,#0x2000	;4
+MOVL @20,ACC	;2
+```
+
+12 bytes (10 if `DP` can be done by `MOVZ`)
+
+risc-v + XTightlyCoupledIO::
+[source, asm]
+```
+tio.cm.bseti ECana_CANMC, ECana_CANMC_SCB_Pos
+```
+
+2 bytes (4 if `tio.cm` is unavailable)
+
+NOTE: risc-v is naturally 32bit, no gimmicks required.
 
 [bibliography]
 == Bibliography
@@ -3247,3 +3468,5 @@ specified in C <<typepunninginc>>
 * [[[moteusadcfix, 6]]] https://github.com/mjbots/moteus/commit/a398d0c4fde08ea5a585bbf0d53da6be422e0915
 * [[[c2000workshop, 7]]] http://www.ee.iitb.ac.in/~ccgroup/old/Lab_pages/experiment_files/TI.pdf
 * [[[typepunninginc, 8]]] https://stackoverflow.com/questions/24542964/aliasing-type-punning-unions-structs-and-bit-fields-in-c99
+* [[[spraa85a, 9]]] http://staff.ii.pw.edu.pl/kowalski/dsp/F28x/F2808_page/spraa85a.pdf
+* [[[c2000fastbranch, 10]]] https://e2e.ti.com/support/tools/code-composer-studio-group/ccs/f/code-composer-studio-forum/447691/reason-for-not-using-c28x-fast-branch

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.5
+:appversion: 3.2.6
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | change
+| v3.2.6  | some clarifications
 | v3.2.5  | more c2000 samples
 | v3.2.4  | trim 1.0 from revision history, adjust column widths
 | v3.2.3  | corrected calculation of c2000 code sizes
@@ -431,6 +432,8 @@ NOTE: TSO model is the best fit for typicall in-order pipelines longer than 2-3 
 
 NOTE: implementations cannot reuse operand forwarding to solve RAW hazards of IO registers
 due to `volatile` rules
+
+Synchronization with (indepotent) memory access requires explicit `FENCE` synchronization.
 
 Access to IO registers by `tio.` instructions and memory mapped interface is not synchronized.
 
@@ -3395,12 +3398,12 @@ c2000::
 	AND AL,@AL,#0x7FFF		;4
 	MOV *+XAR5[4],AL		;2
 	TBIT *+XAR5[4],#15		;4
-	SBF L1,NTC				;2 (7 bit forward range)
-	NOP						; placeholder
+	SBF L1,NTC				;2 (7 bit forward range, "fast branch")
+	NOP						;2 ; placeholder
 L1:
 ```
 
-24 bytes (22 if `DP` can be done by `MOVZ`)
+26 bytes (24 if `DP` can be done by `MOVZ`)
 
 NOTE: "fast branches" are slower when used on waitstated memories (like flash) <<c2000fastbranch>>.
 The only slow branches are 32bit ones.
@@ -3410,12 +3413,12 @@ risc-v + XTightlyCoupledIO::
 ```
 	tio.bclri t0, CpuTimer0_TCR, CpuTimer0_TCR_TIF_Pos
 	tio.bseti CpuTimer0_TCR, t0, CpuTimer0_TCR_TSS_Pos
-	tio.bsbclri CpuTimer0_TCR, CpuTimer0_TCR_TIF_Pos, L1 // 12 bit range
+	tio.bsbclri CpuTimer0_TCR, CpuTimer0_TCR_TIF_Pos, L1 // 11 bit forward range
 	nop // placeholder
 L1:
 ```
 
-12 bytes
+14 bytes
 
 NOTE: write 1 to clear bits are usually separated from control registers
 

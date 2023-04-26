@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.6
+:appversion: 3.2.7
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | change
+| v3.2.7  | there is also slow short branch
 | v3.2.6  | some clarifications
 | v3.2.5  | more c2000 samples
 | v3.2.4  | trim 1.0 from revision history, adjust column widths
@@ -3398,15 +3399,12 @@ c2000::
 	AND AL,@AL,#0x7FFF		;4
 	MOV *+XAR5[4],AL		;2
 	TBIT *+XAR5[4],#15		;4
-	SBF L1,NTC				;2 (7 bit forward range, "fast branch")
+	SBF L1,NTC				;2 (7 bit forward range)
 	NOP						;2 ; placeholder
 L1:
 ```
 
 26 bytes (24 if `DP` can be done by `MOVZ`)
-
-NOTE: "fast branches" are slower when used on waitstated memories (like flash) <<c2000fastbranch>>.
-The only slow branches are 32bit ones.
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
@@ -3472,4 +3470,3 @@ NOTE: risc-v is naturally 32bit, no gimmicks required.
 * [[[c2000workshop, 7]]] http://www.ee.iitb.ac.in/~ccgroup/old/Lab_pages/experiment_files/TI.pdf
 * [[[typepunninginc, 8]]] https://stackoverflow.com/questions/24542964/aliasing-type-punning-unions-structs-and-bit-fields-in-c99
 * [[[spraa85a, 9]]] http://staff.ii.pw.edu.pl/kowalski/dsp/F28x/F2808_page/spraa85a.pdf
-* [[[c2000fastbranch, 10]]] https://e2e.ti.com/support/tools/code-composer-studio-group/ccs/f/code-composer-studio-forum/447691/reason-for-not-using-c28x-fast-branch

@@ -23,7 +23,7 @@ jobs:
       NPM_PACKAGE_FOLDER: ${{ github.workspace }}/dependencies
       PDF_RESULT: XTightlyCoupledIO.pdf
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Install Ubuntu packages
       run: |
         sudo apt-get update
@@ -35,16 +35,16 @@ jobs:
         ruby-version: "3.2"
         bundler-cache: true
     # Node.js for wavedrom
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       with:
         path: ~/.npm
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
     - name: Setup Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
-        node-version: '14'
+        node-version: '16'
     - name: Install Node.js dependencies
       run: npm install ${NPM_PACKAGE_FOLDER}
     - name: Generate PDF
@@ -52,7 +52,7 @@ jobs:
         PATH=${PATH}:${BUNDLE_BIN}:$(npm bin) \
         make ${PDF_RESULT}
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: XTightlyCoupledIO.pdf
         path: ${{ env.PDF_RESULT }}

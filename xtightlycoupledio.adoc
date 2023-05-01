@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.8
+:appversion: 3.2.9
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | change
+| v3.2.9  | fixed bibliography numbering
 | v3.2.8  | more notes on bitfield type punning
 | v3.2.7  | there is also slow short branch
 | v3.2.6  | some clarifications
@@ -3476,5 +3477,5 @@ Therefore the explicit volatile load/store must always be porformed to safely us
 * [[[c2000workshop, 7]]] http://www.ee.iitb.ac.in/~ccgroup/old/Lab_pages/experiment_files/TI.pdf
 * [[[typepunninginc, 8]]] https://stackoverflow.com/questions/24542964/aliasing-type-punning-unions-structs-and-bit-fields-in-c99
 * [[[spraa85a, 9]]] http://staff.ii.pw.edu.pl/kowalski/dsp/F28x/F2808_page/spraa85a.pdf
-* [[[typepunnedacces1, 9]]] https://stackoverflow.com/questions/67340350/bitfield-write-size
-* [[[typepunnedacces2, 9]]] https://stackoverflow.com/questions/42171429/force-gcc-to-access-structs-with-words
+* [[[typepunnedacces1, 10]]] https://stackoverflow.com/questions/67340350/bitfield-write-size
+* [[[typepunnedacces2, 11]]] https://stackoverflow.com/questions/42171429/force-gcc-to-access-structs-with-words

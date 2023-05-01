@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.9
+:appversion: 3.2.10
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | change
+| v3.2.10 | fixed inline code
 | v3.2.9  | fixed bibliography numbering
 | v3.2.8  | more notes on bitfield type punning
 | v3.2.7  | there is also slow short branch
@@ -3461,7 +3462,7 @@ tio.cm.bseti ECana_CANMC, ECana_CANMC_SCB_Pos
 NOTE: risc-v is naturally 32bit, no gimmicks required.
 
 NOTE: C/C++ allows compilers to generate narrower acces to type puned volatile bitfields
-and it does happen <<typepunnedacces1>>,<<typepunnedacces2>>  until `-fstrict-volatile-bitfields ` flag is provided.
+and it does happen <<typepunnedacces1>>,<<typepunnedacces2>>  until `-fstrict-volatile-bitfields` flag is provided.
 Therefore the explicit volatile load/store must always be porformed to safely use type punning by bitfields.
 (c2000 cannot do narrower access than 16 bits so their compiler cannot break 16bit peripherals)
 

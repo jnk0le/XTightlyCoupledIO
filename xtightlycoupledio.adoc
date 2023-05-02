@@ -18,7 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | change
-| v3.2.10 | fixed inline code
+| v3.2.10 | fixed inline code rendering
 | v3.2.9  | fixed bibliography numbering
 | v3.2.8  | more notes on bitfield type punning
 | v3.2.7  | there is also slow short branch

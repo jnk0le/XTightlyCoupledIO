@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.11
+:appversion: 3.2.12
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | change
+| v3.2.12 | some improvements
 | v3.2.11 | reference the avr8 isa
 | v3.2.10 | fixed inline code rendering
 | v3.2.9  | fixed bibliography numbering
@@ -195,12 +196,14 @@ Source and destinstion operands can independently address their bytes and half-w
 
 ==== ti c2000
 
-<<spracw5a>> claims 2 cycles for ADC reg to float, Fig 4-3 claims 3x cycle speedup over cortex m4 (stm32g4)
+Proprietary TI accumulator-memory architecture <<spru430f>> similar to the classic CISCs.
 
 Peripherals can be accessed using indirect (XAR pointer registers) or DP addressing 
 (16bit + 6bit offset from instr). Provide AMO-ALU instructions as well as integer to float conversions.
 
-The CLA can convert to float directly from memory (including peripherals)
+The CLA can also convert to float directly from memory (including peripherals)
+
+<<spracw5a>> claims 2 cycles for ADC reg to float, Fig 4-3 claims 3x cycle speedup over cortex m4 (stm32g4)
 
 ==== cortex m0+ single cycle IO
 
@@ -2646,7 +2649,8 @@ Encoding (RV32, RV64)::
 ==== tio.nop.sideattach
 
 In opposition to `tio.nop` it doesn't cause pipelie contention, but instead
-attaches its own `sideOP` to a next IO accessing `tio` instruction.
+attaches its own `sideOP` to a next IO accessing `tio` instruction. Effectively overriding 
+sideOP in a next instruction if present. (sideOP of next instruction has no effect)
 
 Cannot be overriden by itself, only the last `sideattach` instruction is effective
 
@@ -3472,13 +3476,14 @@ Therefore the explicit volatile load/store must always be porformed to safely us
 
 * [[[doc1292, 1]]] https://web.archive.org/web/20111213030633/http://www.atmel.com/dyn/resources/prod_documents/DOC1292.PDF
 * [[[avr8, 2]]] https://ww1.microchip.com/downloads/en/devicedoc/atmel-0856-avr-instruction-set-manual.pdf
-* [[[spruij2, 3]]] https://www.ti.com/lit/ug/spruij2/spruij2.pdf?ts=1678361442691&ref_url=https%253A%252F%252Fwww.google.com%252F
+* [[[spruij2, 3]]] https://www.ti.com/lit/ug/spruij2/spruij2.pdf?ts=1678361442691
 * [[[am335xPRU, 4]]] https://mythopoeic.org/BBB-PRU/am335xPruReferenceGuide.pdf
-* [[[spracw5a, 5]]] https://www.ti.com/lit/an/spracw5a/spracw5a.pdf
-* [[[packetprocriscv, 6]]] https://liu.diva-portal.org/smash/get/diva2:1636414/FULLTEXT01.pdf
-* [[[moteusadcfix, 7]]] https://github.com/mjbots/moteus/commit/a398d0c4fde08ea5a585bbf0d53da6be422e0915
-* [[[c2000workshop, 8]]] http://www.ee.iitb.ac.in/~ccgroup/old/Lab_pages/experiment_files/TI.pdf
-* [[[typepunninginc, 9]]] https://stackoverflow.com/questions/24542964/aliasing-type-punning-unions-structs-and-bit-fields-in-c99
-* [[[spraa85a, 10]]] http://staff.ii.pw.edu.pl/kowalski/dsp/F28x/F2808_page/spraa85a.pdf
-* [[[typepunnedacces1, 11]]] https://stackoverflow.com/questions/67340350/bitfield-write-size
-* [[[typepunnedacces2, 12]]] https://stackoverflow.com/questions/42171429/force-gcc-to-access-structs-with-words
+* [[[spru430f, 5]]] https://www.ti.com/lit/ug/spru430f/spru430f.pdf?ts=1677869437551
+* [[[spracw5a, 6]]] https://www.ti.com/lit/an/spracw5a/spracw5a.pdf
+* [[[packetprocriscv, 7]]] https://liu.diva-portal.org/smash/get/diva2:1636414/FULLTEXT01.pdf
+* [[[moteusadcfix, 8]]] https://github.com/mjbots/moteus/commit/a398d0c4fde08ea5a585bbf0d53da6be422e0915
+* [[[c2000workshop, 9]]] http://www.ee.iitb.ac.in/~ccgroup/old/Lab_pages/experiment_files/TI.pdf
+* [[[typepunninginc, 10]]] https://stackoverflow.com/questions/24542964/aliasing-type-punning-unions-structs-and-bit-fields-in-c99
+* [[[spraa85a, 11]]] http://staff.ii.pw.edu.pl/kowalski/dsp/F28x/F2808_page/spraa85a.pdf
+* [[[typepunnedacces1, 12]]] https://stackoverflow.com/questions/67340350/bitfield-write-size
+* [[[typepunnedacces2, 13]]] https://stackoverflow.com/questions/42171429/force-gcc-to-access-structs-with-words

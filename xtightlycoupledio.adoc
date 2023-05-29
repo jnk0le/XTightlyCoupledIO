@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.12
+:appversion: 3.2.13
 :toc:
 :toclevels: 4
 :sectnums:
@@ -17,7 +17,8 @@ This document is released under a Creative Commons Attribution 4.0 International
 
 [cols="1,5",options=header]
 |====================================================================================
-| Version | change
+| Version | Change
+| v3.2.13 | commentary fixes, added note about P ext destructive instructions
 | v3.2.12 | some improvements
 | v3.2.11 | reference the avr8 isa
 | v3.2.10 | fixed inline code rendering
@@ -184,7 +185,7 @@ Today we have only a few chinese clones of atmega328p due to expired patents.
 
 Proprietary TI RISC architecture <<spruij2>>. Popularized in beaglebone sbcs
 
-Only the GPIO pins are mapped to `r30` and `r31` register, though sometimes there is a mux
+Only the GPIO pins are mapped to `r30` and `r31` registers, though sometimes there is a mux
 on `r30`/`r31` interfaces with e.g. MII or shift registers <<am335xPRU>> (5.2.2)
 
 special instructions for:
@@ -233,7 +234,7 @@ bit-addressable registers can be operated by special irregular instructions:
 - jump if bit is set/clear
 - jump if bit is set then clear it
 - `mov` between bit and carry flag
-- `and`/`or` operation of carry into bit (or its inverse)
+- `and`/`or` operation of carry flag into bit (or its inverse)
 
 === alternative approaches
 
@@ -342,6 +343,9 @@ provide AMO like decoupled execution.
 
 NOTE: Destructive encodings are also justified by a bitfield insert instructions,
 possible only within destructive encoding.
+
+NOTE: P extension is about to introduce instructions wth destructive `rd` encodings,
+including IFMA, designated for DSP tasks
 
 ==== `bfp` from 0.94 bitmanip
 
@@ -534,7 +538,7 @@ it can be:
 ** no longer relaxable to gp-rel load/stores
 
 * used with explicit attribute e.g. `\\__attribute__\((mapto_ioscratch("bsb_accessible,bool_mergable,1cycle")))`
-** usefull for critical inner control loop globals
+** usefull for critical control loop globals
 ** can overide default cost function of above option
 ** variable is not forced into scratch register if specific criteria is not met
 ** no longer relaxable to gp-rel load/stores
@@ -618,7 +622,7 @@ where e.g. `i.add a0, a0, a1` must alway emit exactly specified encoding
 and `add a0, a0, a1` can be relaxed to compressed instruction or a different one
 (e.g. `bseti a0, a1, 11` can be turned into `ori a0, a1, (1<<11)` for assumed,
 better execution units availability).
-For now we have only the unreliable and bloaty `.option norvc` workaround.
+For now we have only the unreliable and bloaty `.option norvc`+`.option norelax` workaround.
 
 ==== sideOP
 
@@ -3371,7 +3375,7 @@ NOTE: when using modern compiler (gcc,llvm), there should be no difference betwe
 and "shadow register".
 
 NOTE: usually vendors provide bitmask definitions for those bits so as to construct the write by
-oring them. e.g. `SysCtrl.PCLKCR0 = SysCtrl_PCLKCR0_ADCENCLK | SysCtrl_PCLKCR0_I2CAENCLK [...]`
+bitwise operations on them. e.g. `SysCtrl.PCLKCR0 = SysCtrl_PCLKCR0_ADCENCLK | SysCtrl_PCLKCR0_I2CAENCLK [...]`
 
 === c2000 preserving write 1 to clear bits
 

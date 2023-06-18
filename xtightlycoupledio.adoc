@@ -85,6 +85,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 This document uses semantic versioning with respect to potential hardware designs. 
 Assembly syntax change is a minor increment. Version 1.0.0 is the first publicly released. 
 Changes in prior versions are not versioned properly and not tracked in revision history.
+The number in a major revision doesn't hold the freeze or ratification status.
 
 Document is written in a way that reduces the duplications as those are hard to maintain.
 

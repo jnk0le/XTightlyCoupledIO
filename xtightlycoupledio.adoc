@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.20
+:appversion: 3.2.21
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.21 | trim long lines in listings
 | v3.2.20 | autofit
 | v3.2.19 | use proper listings for code
 | v3.2.18 | added 7segment irq sample
@@ -3023,7 +3024,8 @@ void init_7seg() {
 	GPIOF->MODER |= (0b01 << GPIO_MODER_MODER0_Pos) | (0b01 << GPIO_MODER_MODER1_Pos);
 	GPIOA->MODER |= (0b01 << GPIO_MODER_MODER9_Pos);
 
-	//initialize to disabled state (common scattered will blink first digit on all columns on startup otherwise)
+	// initialize to disabled state (common scattered will blink first 
+	// digit on all columns on startup otherwise)
 	GPIOB->BSRR = GPIO_BSRR_BS_1;
 	GPIOF->BSRR = GPIO_BSRR_BS_0 | GPIO_BSRR_BS_1;
 	GPIOA->BSRR = GPIO_BSRR_BS_9;
@@ -3234,10 +3236,13 @@ static inline constexpr void turnOff([[maybe_unused]] uint32_t idx)
 
 static inline constexpr void turnOn(uint32_t idx)
 {
-	if constexpr(invert_polarity)
-		reinterpret_cast<GPIO_TypeDef*>(gpio_addr)->BRR = static_cast<uint32_t>(column_pin_mask_lut[idx]);
-	else
-		reinterpret_cast<GPIO_TypeDef*>(gpio_addr)->BSRR = static_cast<uint32_t>(column_pin_mask_lut[idx]);
+	if constexpr(invert_polarity) {
+		reinterpret_cast<GPIO_TypeDef*>(gpio_addr)->BRR = 
+				static_cast<uint32_t>(column_pin_mask_lut[idx]);
+	} else {
+		reinterpret_cast<GPIO_TypeDef*>(gpio_addr)->BSRR =
+				static_cast<uint32_t>(column_pin_mask_lut[idx]);
+	}
 }
 ----
 
@@ -3261,8 +3266,8 @@ TIM16_IRQHandler:                       # @TIM16_IRQHandler
         sw      a1, 16(a2)
         sh2add  a2, a1, a2
         lw      a2, 0(a2)
-        lui     a3, %hi(jnk0le::sseg::CommonConfig<true, 1207960576u, 2u, 3u, 4u, 5u>::column_pin_mask_lut)
-        addi    a3, a3, %lo(jnk0le::sseg::CommonConfig<true, 1207960576u, 2u, 3u, 4u, 5u>::column_pin_mask_lut)
+        lui     a3, %hi(trimmed::column_pin_mask_lut)
+        addi    a3, a3, %lo(trimmed::column_pin_mask_lut)
         sh1add  a1, a1, a3
         lhu     a1, 0(a1)
         sw      a2, 24(a0)
@@ -3302,7 +3307,7 @@ TIM16_IRQHandler:
         .word   1073824768
         .word   1207960576
         .word   .LANCHOR0
-        .word   jnk0le::sseg::CommonConfig<true, 1207960576u, 2ul, 3ul, 4ul, 5ul>::column_pin_mask_lut
+        .word   trimmed::column_pin_mask_lut
 ----
 
 
@@ -3322,8 +3327,8 @@ risc-v + XTightlyCoupledIO::
 	sh2add a0, a1, a0 // disp_cache[cnt]
 	lw a0, 0(a0)
 	tio.cm.mv GPIOA_BSRR, a0
-	lui a0 %hi(column_pin_mask_lut)
-	addi a0 %lo(column_pin_mask_lut)
+	lui a0 %hi(trimmed::column_pin_mask_lut)
+	addi a0 %lo(trimmed::column_pin_mask_lut)
 	sh1add a0, a1, a0 
 	lh a0, 0(a0)
 	tio.cm.mv GPIOB_BRR, a0

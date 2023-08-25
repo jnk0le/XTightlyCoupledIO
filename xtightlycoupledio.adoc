@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.18
+:appversion: 3.2.19
 :toc:
 :toclevels: 4
 :sectnums:
@@ -18,6 +18,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.19 | use proper listings for code
 | v3.2.18 | added 7segment irq sample
 | v3.2.17 | 7segment code does bsrr lookups on non continous bit-fields
 | v3.2.16 | added note about the major revisions
@@ -324,21 +325,21 @@ Low use cases to be worth.
 
 Bottom 11 bits can be done with single instruction:
 
-```
+----
 tio.addi iod, zero, (~(1<<pos))
-```
+----
 
 Otherwise we can achieve this in 2 instructions:
 
-```
+----
 lui t0, %hi(~(1<<pos)) // 'c.' if bit 16-12 zeoroed 
 tio.addi iod, t0, %lo(~(1<<pos))
-```
+----
 or
-```
+----
 c.li t0, -1
 tio.bclri iod, t0, pos
-```
+----
 
 ==== non destructive io-io-reg instructions
 
@@ -359,44 +360,44 @@ Requires 4 instruction sequence to insert a constant.
 Let's consider followng sample:
 
 [source,C]
-```
+----
 // switch PLL (0b10) to HSE (0b01)
 RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW_Msk) | (RCC_CFGR_SW_HSE);
-```
+----
 
 using bfp:
 [source,asm]
-```
+----
 li t1, RCC_CFGR_SW_HSE
 addi t0, zero, {length[3:0], offset[7:0]}
 pack t0, t1, t0
 bfp a0, a0, t0
-```
+----
 
 NOTE: below samples cannot be performed directly on IO sfr (require caching of intermediate result)
 
 In best case scenario it can be done in 2 instructions:
 [source,asm]
-```
+----
 andi a0, a0, ~RCC_CFGR_SW_Msk
 ori a0, a0, RCC_CFGR_SW_HSE
-```
+----
 
 or in considered scenario:
 [source,asm]
-```
+----
 bseti a0, a0, RCC_CFGR_SW_Pos
 bclri a0, a0, RCC_CFGR_SW_Pos+1
-```
+----
 
 Alternatively a more general sequence (4-6 instructions):
 [source,asm]
-```
+----
 li a1, RCC_CFGR_SW_Msk // non inverted can be a single lui
 andn a0, a0, a1 // use ~RCC_CFGR_SW_Msk for and, when Zbb is missing
 li a1, RCC_CFGR_SW_HSE
 or a0, a0, a1
-```
+----
 
 Can use `bseti` or `bclri` to cover a single bit in a field and avoid loading constants.
 
@@ -427,11 +428,11 @@ A partial modification triggers side effects as if the entire XLEN sized word
 was read, modified and written back.
 
 [source, C]
-```
+----
 GPIOA->OUT |= (1<<13);
 //is equivalent to
 tio.bseti io123, 13
-```
+----
 
 ==== TODO: grouping of bits from multiple different registers
 
@@ -506,7 +507,7 @@ into `in` and `out` instructions, but risc-v doesn't do an absolute addressing l
 
 In avr world portability of IO accesing assembly code was done like:
 
-```
+----
 #if defined(atmega1234)||defined(atmega12345)
 
 #define RDR_REGISTER_IN_IO
@@ -515,7 +516,7 @@ In avr world portability of IO accesing assembly code was done like:
 
 #elif defined(atmega123456)
 //...
-```
+----
 
 And appropriately spam #ifdef's in the actual code.
 
@@ -575,10 +576,10 @@ and {rdm} and {rsm} are substituted with one of the following letter.
 
 Register specifiers use the same letter.
 
-```
+----
 tio.bseti3.y y11, 13 // set bit 13 in io 11 register in bank 3
 tio.bseti2.yx y22, zero, 17 // write (1<<17) to io 22 register in bank 2
-```
+----
 
 NOTE: letter y was picked totally arbitrarily as it's single letter and doesn't have conflicts
 
@@ -591,19 +592,19 @@ linearized addressing.
 
 The supplementary instructions with omitted suffix are also considered as pseudoinstructions.
 
-```
+----
 tio.bseti io107, 13 // set bit 13 in io 11 register in bank 3
 tio.bseti io86, zero, 17 // write (1<<17) to io 22 register in bank 2
-```
+----
 
 ==== Canonical io move instruction
 
 The following instructions are designated as a canonical IO move instructions:
 
-```
+----
 tio.add{n}.yx iod, zero, rs2
 tio.add{n}.xy rd, ios1, zero
-```
+----
 
 Available under `tio.mv` name with suffixed or linearized version.
 
@@ -643,12 +644,12 @@ If square bracket is provided with a single number, it must always be interprete
 
 usage::
 [source, asm]
-```
+----
 1:	tio.bseti GPIOA_ODR, 13
 2:	tio.bseti GPIOA_ODR, 13, [0] // equivalent to 1
 3:	tio.bseti GPIOA_ODR, 13, [31]
 4:	tio.bseti GPIOA_ODR, 13, [sideset 0b10, 7] // imaginary extension
-```
+----
 
 NOTE: Square bracket was selected as MIPS syntax inherited by RISC-V doesn't use those.
 
@@ -684,9 +685,9 @@ Synopsis::
 Branch if single bit in register is set (immediate)
 
 Mnemonic::
-```
+----
 tio.bsbseti.x rs1, shamt, label
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -711,9 +712,9 @@ Synopsis::
 Branch if single bit in register is cleared (immediate)
 
 Mnemonic::
-```
+----
 tio.bsbclri.x rs1, shamt, label
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -738,9 +739,9 @@ Synopsis::
 extract bitfield from register (immediate)
 
 Mnemonic::
-```
+----
 tio.bfextracti.xx rd, rs1, offset, len
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -777,9 +778,9 @@ Synopsis::
 extract and sign extend bitfield from register (immediate)
 
 Mnemonic::
-```
+----
 tio.sbfextracti.xx rd, rs1, offset, len
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -823,9 +824,9 @@ Synopsis::
 Destructive bitfield insert into register (immediate)
 
 Mnemonic::
-```
+----
 tio.bfinserti.xx rd, rs1, offset, len
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -864,9 +865,9 @@ Synopsis::
 Destructive bitfield insert into register from immediate (immediate)
 
 Mnemonic::
-```
+----
 tio.bfinserti.xi rd, uimm, offset, len
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -922,9 +923,9 @@ Synopsis::
 Branch if equal (immediate)
 
 Mnemonic::
-```
+----
 tio.beqi.xi rs2, uimm, label
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -949,9 +950,9 @@ Synopsis::
 Branch if not equal (immediate)
 
 Mnemonic::
-```
+----
 tio.bnei.xi rs2, uimm, label
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -981,9 +982,9 @@ Synopsis::
 Add immediate and write to io register
 
 Mnemonic::
-```
+----
 tio.addi{bsel}.yx iod, rs1, imm
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1007,9 +1008,9 @@ General IO alu instructions
 ==== tio.add
 
 Mnemonic::
-```
+----
 tio.add{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1029,9 +1030,9 @@ Encoding (RV32, RV64)::
 ==== tio.sub
 
 Mnemonic::
-```
+----
 tio.sub{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1051,9 +1052,9 @@ Encoding (RV32, RV64)::
 ==== tio.and
 
 Mnemonic::
-```
+----
 tio.and{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1073,9 +1074,9 @@ Encoding (RV32, RV64)::
 ==== tio.or
 
 Mnemonic::
-```
+----
 tio.or{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1095,9 +1096,9 @@ Encoding (RV32, RV64)::
 ==== tio.xor
 
 Mnemonic::
-```
+----
 tio.xor{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1117,9 +1118,9 @@ Encoding (RV32, RV64)::
 ==== tio.slli
 
 Mnemonic::
-```
+----
 tio.slli{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -1155,9 +1156,9 @@ Encoding (RV64)::
 ==== tio.srli
 
 Mnemonic::
-```
+----
 tio.srli{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -1193,9 +1194,9 @@ Encoding (RV64)::
 ==== tio.srai
 
 Mnemonic::
-```
+----
 tio.srai{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -1231,9 +1232,9 @@ Encoding (RV64)::
 ==== tio.sll
 
 Mnemonic::
-```
+----
 tio.sll{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1254,9 +1255,9 @@ Encoding (RV32, RV64)::
 ==== tio.srl
 
 Mnemonic::
-```
+----
 tio.srl{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1277,9 +1278,9 @@ Encoding (RV32, RV64)::
 ==== tio.sra
 
 Mnemonic::
-```
+----
 tio.sra{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1304,9 +1305,9 @@ Destructive general IO alu instructions
 ==== tio.add.y
 
 Mnemonic::
-```
+----
 tio.add{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1325,9 +1326,9 @@ Encoding (RV32, RV64)::
 ==== tio.sub.y
 
 Mnemonic::
-```
+----
 tio.sub{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1346,9 +1347,9 @@ Encoding (RV32, RV64)::
 ==== tio.and.y
 
 Mnemonic::
-```
+----
 tio.and{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1367,9 +1368,9 @@ Encoding (RV32, RV64)::
 ==== tio.or.y
 
 Mnemonic::
-```
+----
 tio.or{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1388,9 +1389,9 @@ Encoding (RV32, RV64)::
 ==== tio.xor.y
 
 Mnemonic::
-```
+----
 tio.xor{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1413,9 +1414,9 @@ General IO bitmanip instructions
 ==== tio.andn
 
 Mnemonic::
-```
+----
 tio.andn{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1435,9 +1436,9 @@ Encoding (RV32, RV64)::
 ==== tio.orn
 
 Mnemonic::
-```
+----
 tio.orn{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1457,9 +1458,9 @@ Encoding (RV32, RV64)::
 ==== tio.xnor
 
 Mnemonic::
-```
+----
 tio.xnor{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1479,9 +1480,9 @@ Encoding (RV32, RV64)::
 ==== tio.min
 
 Mnemonic::
-```
+----
 tio.min{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1501,9 +1502,9 @@ Encoding (RV32, RV64)::
 ==== tio.minu
 
 Mnemonic::
-```
+----
 tio.minu{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1523,9 +1524,9 @@ Encoding (RV32, RV64)::
 ==== tio.max
 
 Mnemonic::
-```
+----
 tio.max{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1545,9 +1546,9 @@ Encoding (RV32, RV64)::
 ==== tio.maxu
 
 Mnemonic::
-```
+----
 tio.maxu{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1567,9 +1568,9 @@ Encoding (RV32, RV64)::
 ==== tio.rev8
 
 Mnemonic::
-```
+----
 tio.rev8{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1593,9 +1594,9 @@ Destructive general IO bitmanip instructions
 ==== tio.andn.y
 
 Mnemonic::
-```
+----
 tio.andn{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1614,9 +1615,9 @@ Encoding (RV32, RV64)::
 ==== tio.orn.y
 
 Mnemonic::
-```
+----
 tio.orn{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1635,9 +1636,9 @@ Encoding (RV32, RV64)::
 ==== tio.xnor.y
 
 Mnemonic::
-```
+----
 tio.xnor{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1656,9 +1657,9 @@ Encoding (RV32, RV64)::
 ==== tio.min.y
 
 Mnemonic::
-```
+----
 tio.min{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1677,9 +1678,9 @@ Encoding (RV32, RV64)::
 ==== tio.minu.y
 
 Mnemonic::
-```
+----
 tio.minu{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1698,9 +1699,9 @@ Encoding (RV32, RV64)::
 ==== tio.max.y
 
 Mnemonic::
-```
+----
 tio.max{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1719,9 +1720,9 @@ Encoding (RV32, RV64)::
 ==== tio.maxu.y
 
 Mnemonic::
-```
+----
 tio.maxu{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1747,9 +1748,9 @@ Synopsis::
 Single bit set (immediate)
 
 Mnemonic::
-```
+----
 tio.bseti{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -1788,9 +1789,9 @@ Synopsis::
 Single bit clear (immediate)
 
 Mnemonic::
-```
+----
 tio.bclri{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -1829,9 +1830,9 @@ Synopsis::
 Single bit invert (immediate)
 
 Mnemonic::
-```
+----
 tio.binvi{bsel}.{xy,yx} rd/iod, rs1/ios1, shamt
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -1870,9 +1871,9 @@ Synopsis::
 Single bit extract from IO register (immediate)
 
 Mnemonic::
-```
+----
 tio.bexti{bsel}.xy rd, ios1, shamt
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -1911,9 +1912,9 @@ Synopsis::
 Single bit set
 
 Mnemonic::
-```
+----
 tio.bset{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1937,9 +1938,9 @@ Synopsis::
 Single bit clear
 
 Mnemonic::
-```
+----
 tio.bclr{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1963,9 +1964,9 @@ Synopsis::
 Single bit invert
 
 Mnemonic::
-```
+----
 tio.binv{bsel}.{xy,yx} rd/iod, rs1/ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -1989,9 +1990,9 @@ Synopsis::
 Single bit extract from IO register
 
 Mnemonic::
-```
+----
 tio.bext{bsel}.xy rd, ios1, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2020,9 +2021,9 @@ Synopsis::
 Destructive single bit set (immediate)
 
 Mnemonic::
-```
+----
 tio.bseti{bsel}.y iod, shamt
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -2059,9 +2060,9 @@ Synopsis::
 Destructive single bit clear (immediate)
 
 Mnemonic::
-```
+----
 tio.bclri{bsel}.y iod, shamt
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -2098,9 +2099,9 @@ Synopsis::
 Destructive single bit invert (immediate)
 
 Mnemonic::
-```
+----
 tio.binvi{bsel}.y iod, shamt
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -2137,9 +2138,9 @@ Synopsis::
 Destructive single bit set
 
 Mnemonic::
-```
+----
 tio.bset{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2162,9 +2163,9 @@ Synopsis::
 Destructive single bit clear
 
 Mnemonic::
-```
+----
 tio.bclr{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -2187,9 +2188,9 @@ Synopsis::
 Destructive single bit invert
 
 Mnemonic::
-```
+----
 tio.binv{bsel}.y iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2216,9 +2217,9 @@ Synopsis::
 Destructive bitfield insert into IO register (immediate)
 
 Mnemonic::
-```
+----
 tio.bfinserti{bsel}.yx iod, rs1, offset, len
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -2255,9 +2256,9 @@ Synopsis::
 Destructive bitfield insert into IO register from immediate (immediate)
 
 Mnemonic::
-```
+----
 tio.bfinserti{bsel}.yi iod, uimm, offset, len
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -2298,9 +2299,9 @@ Synopsis::
 extract bitfield from IO register (immediate)
 
 Mnemonic::
-```
+----
 tio.bfextracti{bsel}.xy rd, ios1, offset, len
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -2337,9 +2338,9 @@ Synopsis::
 extract and sign extend bitfield from IO register (immediate)
 
 Mnemonic::
-```
+----
 tio.sbfextracti{bsel}.xy rd, ios1, offset, len
-```
+----
 
 Encoding (RV32)::
 [wavedrom, , svg]
@@ -2380,9 +2381,9 @@ Synopsis::
 Branch if single bit in IO register is set (immediate)
 
 Mnemonic::
-```
+----
 tio.bsbseti{bsel}.y ios1, shamt, label
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2406,9 +2407,9 @@ Synopsis::
 Branch if single bit in IO register is cleared (immediate)
 
 Mnemonic::
-```
+----
 tio.bsbclri{bsel}.y ios1, shamt, label
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2438,9 +2439,9 @@ Synopsis::
 Read IO register and convert to float
 
 Mnemonic::
-```
+----
 tio.fcvt{bsel}.s.w.sy rd, ios1, rm
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2466,9 +2467,9 @@ Synopsis::
 Read IO register and convert to float
 
 Mnemonic::
-```
+----
 tio.fcvt{bsel}.s.wu.sy rd, ios1, rm
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2505,9 +2506,9 @@ Synopsis::
 Move into IO register
 
 Mnemonic::
-```
+----
 tio.cm.mv{bsel}.yx iod, rs2
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2530,9 +2531,9 @@ Synopsis::
 Move from IO register
 
 Mnemonic::
-```
+----
 tio.cm.mv{bsel}.xy rd, ios1
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2557,9 +2558,9 @@ Synopsis::
 Set bit in IO register (immediate)
 
 Mnemonic::
-```
+----
 tio.cm.bseti0.y iod, shamt
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2584,9 +2585,9 @@ Synopsis::
 Clear bit in IO register (immediate)
 
 Mnemonic::
-```
+----
 tio.cm.bclri0.y iod, shamt
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2623,12 +2624,12 @@ NOTE: other sideOP behaviour can be configured by a custom CSR of another extens
 
 example of generating 50:50 square wave with 64 cycle period::
 [source, asm]
-```
+----
 1:
 	tio.bseti GPIOA_ODR, 17, [31]
 	tio.bclri GPIOA_ODR, 17, [31]
 	b 1b
-```
+----
 
 //should be in appendix?
 
@@ -2638,9 +2639,9 @@ This instruction doesn't access any IO register, but it causes pipeline contenti
 as if it was a read-modify-write on IO register.
 
 Mnemonic::
-```
+----
 tio.nop
-```
+----
 
 Encoding (RV32, RV64)::
 [wavedrom, , svg]
@@ -2669,9 +2670,9 @@ NOTE: requires special CSR to hold attached `sideOP`
 NOTE: `uimm=0` sideOP encoding can be used to null out the sideOP of the following instruction
 
 Mnemonic::
-```
+----
 tio.nop.sideattach [sideOP]
-```
+----
 
 NOTE: square bracket is mandatory
 
@@ -2706,29 +2707,29 @@ armv7m listings were generated by "gcc 11.2.1 (none)" with `-Os -mcpu=cortex-m4`
 === stm32 GPIO output toggle
 
 [source, C]
-```
+----
 void toggle() {
     GPIOB->ODR ^= GPIO_ODR_13;
 }
-```
+----
 
 NOTE: on avr8 GPIO pin toggling can be achieved by writing into PINxn registers by `out` or `sbi` instructions
 (the `sbi` here is not a RMW)
 
 risc-v::
 [source, asm]
-```
+----
 toggle():                             # @toggle()
         lui     a0, 294912
         lw      a1, 1044(a0)
         binvi   a1, a1, 13
         sw      a1, 1044(a0)
         ret
-```
+----
 
 armv7m::
 [source, asm]
-```
+----
 toggle():
         ldr     r2, .L5
         ldr     r3, [r2, #20]
@@ -2737,20 +2738,20 @@ toggle():
         bx      lr
 .L5:
         .word   1207960576
-```
+----
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
-```
+----
 toggle():
 	tio.binvi GPIOB_ODR, 13
 	ret
-```
+----
 
 === stm32f0 minimum PLL clock init (assume reset state of registers, no other config)
 
 [source, C]
-```
+----
 void init_clocks()
 {
 	FLASH->ACR = FLASH_ACR_PRFTBE | (FLASH_ACR_LATENCY_Msk & 0b001); // 1ws
@@ -2763,11 +2764,11 @@ void init_clocks()
 	RCC->CFGR |= RCC_CFGR_SW_PLL;
 	while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
 }
-```
+----
 
 risc-v::
 [source, asm]
-```
+----
 init_clocks():                       # @init_clocks()
         lui     a0, 262178
         li      a1, 17
@@ -2792,14 +2793,14 @@ init_clocks():                       # @init_clocks()
         andi    a2, a2, 12
         bne     a2, a1, .LBB0_3
         ret
-```
+----
 
 NOTE: gcc 12.2 fails to detect `slli` + `bgez` pattern and performs 
 li + and + beq, even though on arm it works fine
 
 armv7m::
 [source, asm]
-```
+----
 init_clocks():
         ldr     r3, .L7
         movs    r2, #17
@@ -2825,11 +2826,11 @@ init_clocks():
         bx      lr
 .L7:
         .word   1073881088
-```
+----
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
-```
+----
 init_clocks():
 	tio.addi FLASH_ACR, zero, (FLASH_ACR_PRFTBE | (FLASH_ACR_LATENCY_Msk & 0b001))
 	lui t0, %hi(RCC_CFGR_PLLMUL12)
@@ -2842,12 +2843,12 @@ init_clocks():
 	tio.bfextracti t0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
 	tio.bnei t0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 2b
 	ret
-```
+----
 
 === stm32f0 minimum PLL clock init (assume unknown or "worst case" state of registers)
 
 [source, C]
-```
+----
 void init_clocks2()
 {
 	FLASH->ACR = FLASH_ACR_PRFTBE | (FLASH_ACR_LATENCY_Msk & 0b001); // 1ws
@@ -2869,11 +2870,11 @@ void init_clocks2()
 	RCC->CFGR = RCC_CFGR_SW_PLL | (RCC->CFGR & ~RCC_CFGR_SW_Msk);
 	while((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);
 }
-```
+----
 
 risc-v::
 [source, asm]
-```
+----
 init_clocks2():                      # @init_clocks2()
         lui     a0, 262178
         li      a1, 17
@@ -2924,11 +2925,11 @@ init_clocks2():                      # @init_clocks2()
         andi    a2, a2, 12
         bne     a2, a1, .LBB1_8
         ret
-```
+----
 
 armv7m::
 [source, asm]
-```
+----
 init_clocks2():
         ldr     r3, .L20
         movs    r2, #17
@@ -2976,13 +2977,13 @@ init_clocks2():
         bx      lr
 .L20:
         .word   1073881088
-```
+----
 
 NOTE: gcc fails to detect `bfi` from constant, pattern generally
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
-```
+----
 init_clocks2():
 	tio.addi FLASH_ACR, zero, (FLASH_ACR_PRFTBE | (FLASH_ACR_LATENCY_Msk & 0b001))
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
@@ -3004,14 +3005,14 @@ init_clocks2():
 	tio.bfextracti a0, RCC_CFGR, RCC_CFGR_SWS_Pos, 2
 	tio.bnei a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 5b
 	ret
-```
+----
 
 === stm32f0 gpio + timer init for 7segment display (assume reset state of registers)
 
 comes from: <<ssegstm32>>
 
 [source, C]
-```
+----
 void init_7seg() {
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOFEN;
 	
@@ -3054,11 +3055,11 @@ void init_7seg() {
 
 	//NVIC_EnableIRQ(TIM16_IRQn);
 }
-```
+----
 
 risc-v::
 [source, asm]
-```
+----
 init_7seg():                    # @init_7seg_gpio()
         lui     a0, 262177
         lw      a1, 20(a0)
@@ -3103,11 +3104,11 @@ init_7seg():                    # @init_7seg_gpio()
         sw      a2, 1068(a0)
         sw      a1, 1024(a0)
         ret
-```
+----
 
 armv7m::
 [source, asm]
-```
+----
 init_7seg():
         ldr     r1, .L2
         ldr     r0, .L2+4
@@ -3155,11 +3156,11 @@ init_7seg():
         .word   1207960576
         .word   1207964672
         .word   1073824768
-```
+----
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
-```
+----
 init_7seg():
 	lui t0, %hi(RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOFEN)
 	tio.or RCC_AHBENR, t0
@@ -3183,7 +3184,7 @@ init_7seg():
 	//tio.cm.mv TIM16_CR1, t1
 	tio.addi TIM16_CR1, zero, TIM_CR1_CEN // can also bseti from x0
 	ret
-```
+----
 
 === stm32f0 7segment display interrupt handler
 
@@ -3191,7 +3192,7 @@ comes from: <<ssegstm32>>, heavily based on BSRR/BRR registers.
 
 
 [source, C++]
-```
+----
 using segment_config = jnk0le::sseg::PinConfig<false, GPIOA_BASE, 4, 2, 6, 5, 1, 3, 7, 0>;
 using common_simple = jnk0le::sseg::CommonConfig<true, GPIOB_BASE, 2, 3, 4, 5>;
 
@@ -3236,12 +3237,12 @@ static inline constexpr void turnOn(uint32_t idx)
 	else
 		reinterpret_cast<GPIO_TypeDef*>(gpio_addr)->BSRR = static_cast<uint32_t>(column_pin_mask_lut[idx]);
 }
-```
+----
 
 
 risc-v::
 [source, asm]
-```
+----
 TIM16_IRQHandler:                       # @TIM16_IRQHandler
         lui     a0, 262164
         sw      zero, 1040(a0)
@@ -3265,12 +3266,12 @@ TIM16_IRQHandler:                       # @TIM16_IRQHandler
         sw      a2, 24(a0)
         sw      a1, 1064(a0)
         ret
-```
+----
 
 
 armv7m::
 [source, asm]
-```
+----
 TIM16_IRQHandler:
         ldr     r3, .L3
         ldr     r1, .L3+4
@@ -3300,12 +3301,12 @@ TIM16_IRQHandler:
         .word   1207960576
         .word   .LANCHOR0
         .word   jnk0le::sseg::CommonConfig<true, 1207960576u, 2ul, 3ul, 4ul, 5ul>::column_pin_mask_lut
-```
+----
 
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
-```
+----
 	tio.cm.mv TIM16_SR, zero
 	tio.addi GPIOB_BSRR, zero, 0x3c // pins 2,3,4,5
 	lui a0, %hi(displ)
@@ -3325,7 +3326,7 @@ risc-v + XTightlyCoupledIO::
 	lh a0, 0(a0)
 	tio.cm.mv GPIOB_BRR, a0
 	ret
-```
+----
 
 
 === c2000 workshop sample
@@ -3334,23 +3335,23 @@ from <<c2000workshop>>, page 3-5.
 
 "#define approach"::
 [source, C]
-```
+----
 *TIMER0TCR |= 0x0010; // Stop CPU Timer0
 *TIMER0TPRD32 = 0x00010000; // Load new 32-bit period value
 *TIMER0TCR &= 0xFFEF; // Start CPU Timer0
-```
+----
 
 "structure approach"::
 [source, C]
-```
+----
 CpuTimer0Regs.TCR.bit.TSS = 1; // Stop CPU Timer0
 CpuTimer0Regs.PRD.all = 0x00010000; // Load new 32-bit period value
 CpuTimer0Regs.TCR.bit.TSS = 0; // Start CPU Timer0
-```
+----
 
 c2000 "#define approach"::
 [source, asm]
-```
+----
 MOV @AL,*(0:0x0C04)		;4
 ORB AL, #0x10			;2
 MOV *(0:0x0C04), @AL	;4
@@ -3360,29 +3361,29 @@ MOVL *+XAR4[0], XAR5	;2
 MOV @AL, *(0:0x0C04)	;4
 AND @AL, #0xFFEF		;4
 MOV *(0:0x0C04), @AL	;4
-```
+----
 
 32 bytes and 9 cycles
 
 c2000 "structure approach"::
 [source, asm]
-```
+----
 MOVW DP, #0030			;4/2?
 OR @4, #0x0010			;4
 MOVL XAR4, #0x010000	;4
 MOVL @2, XAR4			;2
 AND @4, #0xFFEF			;4
-```
+----
 
 18 bytes (16 if `DP` can be done by `MOVZ`) and 5 cycles
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
-```
+----
 tio.cm.bseti TIMER0TCR, TSS_Pos
 tio.bseti TIMER0TPRD32, zero, 16
 tio.cm.bclri TIMER0TCR, TSS_Pos
-```
+----
 
 8 bytes and 3 cycles (12 bytes if `tio.cm` is unavailable)
 
@@ -3397,7 +3398,7 @@ specified in C <<typepunninginc>>
 from <<spraa85a>>, par 5.
 
 [source, C]
-```
+----
 SysCtrlRegs.PCLKCR0.bit.rsvd1 = 0;
 SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 0;
 SysCtrlRegs.PCLKCR0.bit.ADCENCLK = 1;
@@ -3412,11 +3413,11 @@ SysCtrlRegs.PCLKCR0.bit.SCIBENCLK = 0;
 SysCtrlRegs.PCLKCR0.bit.rsvd3 = 0;
 SysCtrlRegs.PCLKCR0.bit.ECANAENCLK= 1;
 SysCtrlRegs.PCLKCR0.bit.ECANBENCLK= 0;
-```
+----
 
 c2000::
 [source, asm]
-```
+----
 MOVW DP,#0x01C0
 AND @28,#0xFFFC
 AND @28,#0xFFFB
@@ -3432,7 +3433,7 @@ AND @28,#0xF7FF
 AND @28,#0xCFFF
 OR @28,#0x4000
 AND @28,#0x7FFF
-```
+----
 
 60 bytes (58 if `DP` can be done by `MOVZ`)
 
@@ -3440,7 +3441,7 @@ NOTE: table 3 suggests it's 6 cycles per one AMO-ALU instruction
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
-```
+----
 tio.cm.bclri SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_rsvd1_Pos
 tio.cm.bclri SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_TBCLKSYNC_Pos
 tio.cm.bseti SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_ADCENCLK_Pos
@@ -3455,7 +3456,7 @@ tio.cm.bclri SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_SCIBENCLK_Pos
 tio.cm.bclri SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_rsvd3_Pos
 tio.cm.bseti SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_ECANAENCLK_Pos
 tio.cm.bclri SysCtrlRegs_PCLKCR0, SysCtrl_PCLKCR0_ECANBENCLK_Pos
-```
+----
 
 28 bytes (56 if `tio.cm` is unavailable)
 
@@ -3465,13 +3466,13 @@ from <<spraa85a>> par 5.
 
 using magic value::
 [source, C]
-```
+----
 SysCtrlRegs.PCLKCR0.all = 0x47D8; 
-```
+----
 
 using "shadow register"::
 [source, C]
-```
+----
 // Enable only 2801 Peripheral Clocks
 union PCLKCR0_REG shadowPCLKCR0;
 
@@ -3490,33 +3491,33 @@ shadowPCLKCR0.bit.rsvd3 = 0;
 shadowPCLKCR0.bit.ECANAENCLK= 1; // eCAN-A
 shadowPCLKCR0.bit.ECANBENCLK= 0; // eCAN-B
 SysCtrlRegs.PCLKCR0.all = shadowPCLKCR0.all;
-```
+----
 
 c2000 using magic value::
 [source, asm]
-```
+----
 MOVW DP,#0x01C0
 MOV @28,#0x47D8
-```
+----
 
 8 bytes (6 if `DP` can be done by `MOVZ`)
 
 c2000 using "shadow register"::
 [source, asm]
-```
+----
 MOV @AL,#0x47D8
 MOVW DP,#0x01C0
 MOV @28,AL
-```
+----
 
 10 bytes (8 if `DP` can be done by `MOVZ`)
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
-```
+----
 c.lui t0, %hi(0x47D8)
 tio.addi SysCtrl_PCLKCR0, t0, %lo(0x47D8)
-```
+----
 
 6 bytes
 
@@ -3532,7 +3533,7 @@ from <<spraa85a>> par 6.2.
 
 using "shadow register" to preserve TIF::
 [source, C]
-```
+----
 union TCR_REG shadowTCR;
 // Use a shadow register to stop the timer
 // and preserve TIF (write 1-to-clear bit)
@@ -3548,11 +3549,11 @@ if(CpuTimer0Regs.TCR.bit.TIF == 1)
 	// NOP is only a place holder
 	asm("NOP");
 }
-```
+----
 
 c2000::
 [source, asm]
-```
+----
 	MOVW DP,#0x0030			;4/2?
 	MOV AL,@4				;2
 	ORB AL,#0x10			;2
@@ -3563,19 +3564,19 @@ c2000::
 	SBF L1,NTC				;2 (7 bit forward range)
 	NOP						;2 ; placeholder
 L1:
-```
+----
 
 26 bytes (24 if `DP` can be done by `MOVZ`)
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
-```
+----
 	tio.bclri t0, CpuTimer0_TCR, CpuTimer0_TCR_TIF_Pos
 	tio.bseti CpuTimer0_TCR, t0, CpuTimer0_TCR_TSS_Pos
 	tio.bsbclri CpuTimer0_TCR, CpuTimer0_TCR_TIF_Pos, L1 // 11 bit forward range
 	nop // placeholder
 L1:
-```
+----
 
 14 bytes
 
@@ -3587,7 +3588,7 @@ from <<spraa85a>> par 7.
 
 using "shadow register" to force 32bit access::
 [source, C]
-```
+----
 union CANMC_REG shadowCANMC;
 
 // 32-bit read of CANMC
@@ -3596,24 +3597,24 @@ shadowCANMC.bit.SCB = 1;
 
 // 32-bit write of CANMC
 ECanaRegs.CANMC.all = shadowCANMC.all;
-```
+----
 
 c2000::
 [source, asm]
-```
+----
 MOVW DP,#0x0180	;4/2?
 MOVL ACC,@20	;2
 OR @AL,#0x2000	;4
 MOVL @20,ACC	;2
-```
+----
 
 12 bytes (10 if `DP` can be done by `MOVZ`)
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
-```
+----
 tio.cm.bseti ECana_CANMC, ECana_CANMC_SCB_Pos
-```
+----
 
 2 bytes (4 if `tio.cm` is unavailable)
 

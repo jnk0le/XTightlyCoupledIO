@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.21
+:appversion: 3.2.22
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.22 | use optimized 7segment irq sample
 | v3.2.21 | trim long lines in listings
 | v3.2.20 | autofit
 | v3.2.19 | use proper listings for code
@@ -3198,7 +3199,7 @@ comes from: <<ssegstm32>>, heavily based on BSRR/BRR registers.
 [source, C++]
 ----
 using segment_config = jnk0le::sseg::PinConfig<false, GPIOA_BASE, 4, 2, 6, 5, 1, 3, 7, 0>;
-using common_simple = jnk0le::sseg::CommonConfig<true, GPIOB_BASE, 2, 3, 4, 5>;
+using common_simple = jnk0le::sseg::CommonConfig<true, GPIOB_BASE, 2, 3, 5, 8>;
 
 jnk0le::sseg::Display<segment_config, common_simple> displ;
 
@@ -3212,11 +3213,17 @@ extern "C" void TIM16_IRQHandler()
 void defaultIrqHandler()
 {
 	common_config::turnOff(cnt);
+	
+	// cnt is not volatile but gcc emits some garbage otherwise
+	// It must span no more, otherwise increases register pressure in llvm and gcc
+	uint32_t cnt_tmp = cnt;
 
-	if(cnt == 0)
-		cnt = common_config::getColumnAmount(); // 1 more than effective indexing
+	if(cnt_tmp == 0)
+		cnt_tmp = common_config::getColumnAmount(); // 1 more than effective indexing
 
-	cnt--;
+	cnt_tmp--;
+
+	cnt = cnt_tmp;
 
 	// put delay here in case of ghosting
 
@@ -3246,7 +3253,6 @@ static inline constexpr void turnOn(uint32_t idx)
 }
 ----
 
-
 risc-v::
 [source, asm]
 ----
@@ -3254,7 +3260,7 @@ TIM16_IRQHandler:                       # @TIM16_IRQHandler
         lui     a0, 262164
         sw      zero, 1040(a0)
         lui     a0, 294912
-        li      a1, 60
+        li      a1, 300
         sw      a1, 1048(a0)
         lui     a1, %hi(displ)
         addi    a2, a1, %lo(displ)
@@ -3286,28 +3292,25 @@ TIM16_IRQHandler:
         str     r2, [r3, #16]
         ldr     r2, .L3+8
         ldr     r3, [r2, #16]
-        movs    r0, #60
-        str     r0, [r1, #24]
-        cbnz    r3, .L2
-        movs    r3, #4
-        str     r3, [r2, #16] //????
-.L2:
-        ldr     r3, [r2, #16] //????
+        cmp     r3, #0
+        it      eq
+        moveq   r3, #4
         subs    r3, r3, #1
+        mov     r0, #300
+        str     r0, [r1, #24]
+        ldr     r0, [r2, r3, lsl #2]
         str     r3, [r2, #16]
-        ldr     r1, [r2, r3, lsl #2]
         mov     r2, #1207959552
-        str     r1, [r2, #24]
+        str     r0, [r2, #24]
         ldr     r2, .L3+12
-        ldrh    r2, [r2, r3, lsl #1]
-        ldr     r3, .L3+4
-        str     r2, [r3, #40]
+        ldrh    r3, [r2, r3, lsl #1]
+        str     r3, [r1, #40]
         bx      lr
 .L3:
-        .word   1073824768
-        .word   1207960576
-        .word   .LANCHOR0
-        .word   trimmed::column_pin_mask_lut
+		.word   1073824768
+		.word   1207960576
+		.word   .LANCHOR0
+		.word   trimmed::column_pin_mask_lut
 ----
 
 
@@ -3315,7 +3318,7 @@ risc-v + XTightlyCoupledIO::
 [source, asm]
 ----
 	tio.cm.mv TIM16_SR, zero
-	tio.addi GPIOB_BSRR, zero, 0x3c // pins 2,3,4,5
+	tio.addi GPIOB_BSRR, zero, 0x12c // pins 2,3,5,8
 	lui a0, %hi(displ)
 	addi a0, a0, %lo(displ)
 	lw a1, 16(a0) // get cnt
@@ -3329,7 +3332,7 @@ risc-v + XTightlyCoupledIO::
 	tio.cm.mv GPIOA_BSRR, a0
 	lui a0 %hi(trimmed::column_pin_mask_lut)
 	addi a0 %lo(trimmed::column_pin_mask_lut)
-	sh1add a0, a1, a0 
+	sh1add a0, a1, a0
 	lh a0, 0(a0)
 	tio.cm.mv GPIOB_BRR, a0
 	ret

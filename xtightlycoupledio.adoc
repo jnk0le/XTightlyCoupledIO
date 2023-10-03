@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.24
+:appversion: 3.2.25
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.25 | added xmos prior
 | v3.2.24 | added x86 io ports to prior
 | v3.2.23 | some cleanup and explanation in samples appendix
 | v3.2.22 | use optimized 7segment irq sample
@@ -260,6 +261,17 @@ serving as a legacy ballast. As the address space is no more constrained
 and the code size gains are negligible. +
 Especially considering the fact that the modern peripherals use MMIO 
 mappings instead.
+
+
+==== xmos
+
+Xmos went for software defined peripherals with a barrel processing.
+
+<<xmosxs1>>, <<xmosprog>>
+
+The IO ports can be divided into 1,4,8,16, or 32 bit witdth. +
+Buffered by shift registers, clocked by a timer or external clock. +
+Accessible by `in` and `out` (including partial and shifting variants) instructions.
 
 === alternative approaches
 
@@ -3670,3 +3682,5 @@ Therefore the explicit volatile load/store must always be porformed to safely us
 * [[[typepunnedacces1, 13]]] https://stackoverflow.com/questions/67340350/bitfield-write-size
 * [[[typepunnedacces2, 14]]] https://stackoverflow.com/questions/42171429/force-gcc-to-access-structs-with-words
 * [[[x86io, 15]]] https://opensecuritytraining.info/IntroBIOS_files/Day1_04_Advanced%20x86%20-%20BIOS%20and%20SMM%20Internals%20-%20IO.pdf
+* [[[xmosxs1, 16]]]https://www.xmos.com/download/The-XMOS-XS1-Architecture(X7879A).pdf
+* [[[xmosprog, 17]]]https://www.xmos.com/download/XMOS-Programming-Guide-(documentation)(E).pdf

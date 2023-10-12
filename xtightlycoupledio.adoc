@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.26
+:appversion: 3.2.27
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.27 | x86 had off-chip peripherals
 | v3.2.26 | added 56k to prior art
 | v3.2.25 | added xmos prior
 | v3.2.24 | added x86 io ports to prior
@@ -257,7 +258,7 @@ x86 offers an 16 bit IO address space accessible by `in*` and `out*` instruction
 
 There is some legacy peripherals at fixed IO addresses. The rest are typically remappable.
 
-Originally designed for 8080/8086 era stuff, today
+Originally designed for 8080/8086 peripherals hanging on an off-chip bus, today
 serving as a legacy ballast. As the address space is no more constrained
 and the code size gains are negligible. +
 Especially considering the fact that the modern peripherals use MMIO 

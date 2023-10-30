@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.27
+:appversion: 3.2.28
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.28 | extended rationale against tio multiplication instructions
 | v3.2.27 | x86 had off-chip peripherals
 | v3.2.26 | added 56k to prior art
 | v3.2.25 | added xmos prior
@@ -361,9 +362,21 @@ Sometimes multi cycle, non deterministic.
 Even single cycle implementations are potentially problematic to implement as 
 the multiplier can span more pipeline stages than regular ALUs.
 
+In presence of P or other custom DSP extension, it would be necessary to provide
+IO versions of the myriads of those multiply accumulate instructions.
+Otherwise `tio.mul` + `add` wouldn't provide any benefit over `tio.mv` + `dsp.macc` sequence.
+
 NOTE: if the `mulh` is necessary the `tio.mul` becomes useless 
 
 NOTE: P ext like, `tio.mull.xy` with destination register pair should still be possible 
+
+IIR an FIR filters need to cache the raw ADC readings, effectively enforcing use
+of the `tio.mv` instead of directly sourced multiplications (or MACs)
+
+NOTE: Typical control loop IIR/FIR filters are designed to accept raw ADC readings.
+
+NOTE: Usually ADCs can be configured to do a sign extension of outputs (e.g 12 -> 16 bits). `tio.sbfextracti`  
+could be used to perform such sign extension without need for additional sign extensions in ADCs.
 
 ==== inverted single bit constant
 

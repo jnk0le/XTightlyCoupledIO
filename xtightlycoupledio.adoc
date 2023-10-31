@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.28
+:appversion: 3.2.29
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.29 | typo
 | v3.2.28 | extended rationale against tio multiplication instructions
 | v3.2.27 | x86 had off-chip peripherals
 | v3.2.26 | added 56k to prior art
@@ -370,7 +371,7 @@ NOTE: if the `mulh` is necessary the `tio.mul` becomes useless
 
 NOTE: P ext like, `tio.mull.xy` with destination register pair should still be possible 
 
-IIR an FIR filters need to cache the raw ADC readings, effectively enforcing use
+IIR and FIR filters need to cache the raw ADC readings, effectively enforcing use
 of the `tio.mv` instead of directly sourced multiplications (or MACs)
 
 NOTE: Typical control loop IIR/FIR filters are designed to accept raw ADC readings.

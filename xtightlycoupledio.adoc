@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.29
+:appversion: 3.2.30
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.30 | fixed bibliography links
 | v3.2.29 | typo
 | v3.2.28 | extended rationale against tio multiplication instructions
 | v3.2.27 | x86 had off-chip peripherals
@@ -3715,4 +3716,4 @@ Therefore the explicit volatile load/store must always be porformed to safely us
 * [[[xmosxs1, 16]]] https://www.xmos.com/download/The-XMOS-XS1-Architecture(X7879A).pdf
 * [[[xmosprog, 17]]] https://www.xmos.com/download/XMOS-Programming-Guide-(documentation)(E).pdf
 * [[[56000RM, 18]]] https://www.nxp.com/docs/en/reference-manual/DSP56000UM.pdf
-* [[[56800RM, 18]]] https://www.nxp.com/docs/en/reference-manual/DSP56800FM.pdf
+* [[[56800RM, 19]]] https://www.nxp.com/docs/en/reference-manual/DSP56800FM.pdf

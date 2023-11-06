@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.32
+:appversion: 3.2.33
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.33 | fixed ADC to float reads, low reg pressure 3p3z sample
 | v3.2.32 | some corrections
 | v3.2.31 | added floating point 3p3z control loop sample
 | v3.2.30 | fixed bibliography links
@@ -3700,18 +3701,20 @@ Therefore the explicit volatile load/store must always be porformed to safely us
 
 === stm32g4 buck converter irq (3p3z, voltage mode, floating point)
 
-NOTE: interrupt overhead is out of scope of Xtighlycoupledio, therefore only a C function is analysed.
-See <<xteic>> for further irq latency analysis.
+NOTE: interrupt overhead and related optimizations are out of scope of Xtighlycoupledio,
+therefore only a C function scenario is analysed. See <<xteic>> for further irq latency analysis.
 
 magic numbers and overall design according to <<an5305>> that provides following assumptions:
 
-- Vref set by DAC on the differential ADC, or subtracted by ADC from result
-- ADC handles sign extension
-- timer saturates the output to maximum duty (no neg to zero saturation)
+- Vref (aka target voltage, not to be confused with ADC reference voltage) set by DAC on the
+differential ADC, or subtracted by ADC from result (`ADC_OFRy`).
+- ADC handles sign extension to 16 bits (right adjusted)
+- timer saturates the output to maximum duty (no neg to zero saturation still)
+- early conversion trigger not available
 
 NOTE: On stm32g4 it is possible to do c2000 like early ADC trigger but
 only "normal" channels can generate `EOSMP` flag. Which is useless because 
-the conversion can be interrupted by injected channels. (and injected channels 
+this conversion can be interrupted by injected channels. (and injected channels 
 are used for control loops) The early trigger happens at least 36 cycles ahead 
 (@170MHz, 12,5 cycle conv, 60MHz adc clk) of the end of conversion, requiring additional wait loop.
 c2000 guarantees that early trigger covers only irq entry latency
@@ -3756,7 +3759,8 @@ loop_3p3z buck1 = {
 
 void ADC1_IRQHandler()
 {
-    float in = (float)ADC1->DR;
+    // ADC doesn't sign extend to 32bits, cast it by load insn
+    float in = (float)(*(int16_t*)&ADC1->DR);
 
     // numerators
     float acc = in * buck1.b[0];
@@ -3794,13 +3798,37 @@ void ADC1_IRQHandler()
 }
 ----
 
+To reduce register pressure and consequently improve code size (especially in case
+of sw register stacking in irq handlers like CLIC), the X and Y arrays can be
+updated immediately after elements being consumed (at least gcc can take some advantage of it)
+
+[source, C]
+----
+    // numerators
+    float acc = buck1.X[3 - 1] * buck1.b[3];
+    buck1.X[3 - 1] = buck1.X[2 - 1];
+    acc += buck1.X[2 - 1] * buck1.b[2];
+    buck1.X[2 - 1] = buck1.X[1 - 1];
+    acc += buck1.X[1 - 1] * buck1.b[1];
+    buck1.X[1 - 1] = in;
+    acc += in * buck1.b[0];
+
+    // denominators
+    acc += buck1.Y[3 - 1] * buck1.a[3 - 1];
+    buck1.Y[3 - 1] = buck1.Y[2 - 1];
+    acc += buck1.Y[2 - 1] * buck1.a[2 - 1];
+    buck1.Y[2 - 1] = buck1.Y[1 - 1];
+    acc += buck1.Y[1 - 1] * buck1.a[1 - 1];
+    buck1.Y[1 - 1] = acc;
+----
+
 risc-v::
 [source, asm]
 ----
 ADC1_IRQHandler():                   # @ADC1_IRQHandler()
 	lui     a0, 327680
-	lw      a1, 64(a0)
-	fcvt.s.wu       ft0, a1
+	lh      a1, 64(a0)
+	fcvt.s.w	ft0, a1
 	lui     a1, %hi(buck1)
 	addi    a2, a1, %lo(buck1)
 	flw     ft1, 24(a2)
@@ -3840,14 +3868,18 @@ ADC1_IRQHandler():                   # @ADC1_IRQHandler()
 	ret
 ----
 
-NOTE: llvm likes to allocate a lot of registers, starting from `ft` ones of course. 
+NOTE: llvm likes to allocate a lot of registers, starting from `ft` ones of course.
+GCC does a better job at reducing register pressure
 
 armv7-m::
 [source, asm]
 ----
 ADC1_IRQHandler():
-	ldr     r3, .L2
-	ldr     r0, .L2+4
+	mov     r1, #1342177280
+	ldr     r0, .L2
+	ldrsh   r3, [r1, #64]
+	vmov    s13, r3 @ int
+	ldr     r3, .L2+4
 	vldr.32 s10, [r3]
 	vldr.32 s15, [r3, #28]
 	vldr.32 s14, [r3, #24]
@@ -3855,10 +3887,8 @@ ADC1_IRQHandler():
 	vldr.32 s12, [r3, #8]
 	vldr.32 s11, [r3, #16]
 	vldr.32 s8, [r3, #20]
-	mov     r1, #1342177280
-	vldr.32 s13, [r1, #64]    @ int
+	vcvt.f32.s32    s13, s13
 	vmul.f32	s15, s10, s15
-	vcvt.f32.u32    s13, s13
 	vfma.f32	s15, s14, s13
 	vldr.32 s14, [r3, #32]
 	vfma.f32	s15, s9, s14
@@ -3886,15 +3916,21 @@ ADC1_IRQHandler():
 	vstr.32 s12, [r3, #16]
 	vstr.32 s15, [r3, #12]
 	bx      lr
+.L2:
+	.word   1073833984
+	.word   .LANCHOR0
 ----
 
-NOTE: on CM4 those loads could be done by one big vldm. All FMAs here are 3 cycle anyway
+NOTE: on CM4 those loads could be done by one big vldm. All FMAs are 3 cycle ones anyway
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
 ----
-
-
+	// if sign extension
+	
+	
+	
+	
 ----
 
 
@@ -3905,8 +3941,23 @@ risc-v + XTightlyCoupledIO::
 // code size
 // cycles spend on IO
 
+// NOTE: register pressure and code size analysis ommited due to compilers preffering 
+// high pressure and codesize which biases the pure assembly implementation 
+
+=== stm32 ultra low latency 3p3z (FP)
+
+// assemby only
+// compilers with interrupt attribute don't care
+// for further see Xteic
+
+//the accumulation can pre computed in previous cycle
+
+//precompute and wait fotr EOC or precompute in previous cycle
+
+
 === stm32 buck converter (3p3z, voltage mode, fixed point)
 
+// Vref set by sftware
 // no unaligned mem
 
 [bibliography]

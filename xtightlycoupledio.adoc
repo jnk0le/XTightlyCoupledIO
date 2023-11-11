@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.35
+:appversion: 3.2.36
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.36 | added tio implementation of 3p3z sample
 | v3.2.35 | reimplement 3p3z to transposed direct form II
 | v3.2.34 | some cleanup, removed v2 patch changes from revision history
 | v3.2.33 | fixed ADC to float reads, low reg pressure 3p3z sample
@@ -3719,22 +3720,22 @@ Even if output is computed early, the compiler will spill all registers before e
 actual code. Compilers also have tendency to reschedule code around the sensitive IO write.
 Therefore assembly implementations may be necessary.
 
-===== Vref subtracted in software
+==== Vref subtracted in software
 
 In case of simple ADC, the target voltage can be subtracted directly from
 ADC readout:
 
 [source, C]
 ----
-	int32_t in = ADC1->DR - Vref;
+int32_t in = ADC1->DR - Vref;
 ----
 
 which can resolve to:
 
 [source, asm]
 ----
-	// Vref in a0
-	tio.sub a0, ADC1_DR, a0
+// Vref in a0
+tio.sub a0, ADC1_DR, a0
 ----
 
 ==== irq implementation (floating point)
@@ -3840,9 +3841,6 @@ ADC1_IRQHandler():                   # @ADC1_IRQHandler()
 	ret
 ----
 
-NOTE: llvm likes to allocate a lot of registers, starting from `ft` ones of course.
-GCC does a better job at reducing register pressure
-
 armv7-m::
 [source, asm]
 ----
@@ -3893,24 +3891,41 @@ NOTE: gcc result was manipulated with non volatile casting due to missing optimi
 risc-v + XTightlyCoupledIO::
 [source, asm]
 ----
-	// if ADC did sign extension to whole 32 bits 
-	//tio.fcvt.s.w fa0, ADC1_DR 
-	
-	
-	
-	
+ADC1_IRQHandler():
+	// if ADC did sign extension to whole 32 bits we could convert it directly
+	//tio.fcvt.s.w fa0, ADC1_DR // tio.fcvt.s.h not available
+	tio.sbfextracti a1, ADC1_DR, 0, 16 // tio.sext.h not available
+	fcvt.s.w fa0, a1
+	lui a0, %hi(buck2)
+	addi a0, a0, %lo(buck2) // can be omitted if struct doesn't span the boundary
+	flw fa1, 0(a0) // Z[0]
+	flw fa2, 12(a0) // b[0]
+	flw fa3, 40(a0) // k
+	fmadd.s fa1, fa0, fa2, fa1
+	fmul fa3, fa1, fa3
+	fcvt.w.s a1, fa3
+	tio.max HRTIM1_TIMA_CMP1xR, a1, zero
+	tio.bseti ADC1_ISR, zero, ADC_ISR_JEOC_Pos // can also tio.addi
+	flw fa2, 4(a0) // Z[1]
+	flw fa3 16(a0) // b[1]
+	fmadd.s fa2, fa0, fa3, fa2
+	flw fa3 28(a0) // a[0]
+	fmadd.s fa2, fa1, fa3, fa2
+	fsw fa2, 0(a0) // Z[0]
+	flw fa2, 8(a0) // Z[2]
+	flw fa3 20(a0) // b[2]
+	fmadd.s fa2, fa0, fa3, fa2
+	flw fa3 32(a0) // a[1]
+	fmadd.s fa2, fa1, fa3, fa2
+	fsw fa2, 4(a0) // Z[1]
+	flw fa3 24(a0) // b[3]
+	fmul.s fa2, fa0, fa3
+	flw fa3 36(a0) // a[2]
+	fmadd.s fa2, fa1, fa3, fa2
+	fsw fa2, 8(a0) // Z[2]
+	ret
 ----
 
-
-// table ????
-
-// cycles to pwm
-// cycles total
-// code size
-// cycles spend on IO
-
-// NOTE: register pressure and code size analysis ommited due to compilers preffering 
-// high pressure and codesize which biases the pure assembly implementation 
 
 [bibliography]
 == Bibliography

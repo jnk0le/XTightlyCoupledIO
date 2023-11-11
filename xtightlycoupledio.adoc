@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.33
+:appversion: 3.2.34
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.34 | some cleanup, removed v2 patch changes from revision history
 | v3.2.33 | fixed ADC to float reads, low reg pressure 3p3z sample
 | v3.2.32 | some corrections
 | v3.2.31 | added floating point 3p3z control loop sample
@@ -65,34 +66,14 @@ This document is released under a Creative Commons Attribution 4.0 International
 | v3.0.1  | fixed typos
 | v3.0.0  | rework of encodings, removed destructive shifts and `beq.y`/`bne.y`
             canonical move into IO uses rs2 for symmetry with compressed encoding
-| v2.8.1  | fixed offset field name in bfinserti.yx
 | v2.8.0  | added fence interop
-| v2.7.4  | some of 8051 SFRs are preoccupied
-| v2.7.3  | fixed bibliography links
-| v2.7.2  | avr io address space is smaller than 8051 SFRs
-| v2.7.1  | added 8051 prior and extra avr8 commentary
 | v2.7.0  | added relaxation section, supplementary instrs can also pseudoinstr
-| v2.6.2  | added rationale for removal of .yy encodings
-| v2.6.1  | added PIO prior
 | v2.6.0  | added sideOPdelay subextension
-| v2.5.1  | fixed naming of bitfield positions in samples
 | v2.5.0  | initial memory model
-| v2.4.2  | update appendix with new bitield instructions
-| v2.4.1  | missing bsel, typo fix
 | v2.4.0  | added bitfield insert from immediate
 | v2.3.0  | use `.xi` suffix for reg-imm beqi
-| v2.2.1  | added description to less obvious instructions, some fixes
 | v2.2.0  | added `tio.beqi.x` and `tio.bnei.x`
-| v2.1.8  | cm0+ single cycle IO
-| v2.1.7  | 47999 is upper compressible
-| v2.1.6  | added simple pin toggle sample
-| v2.1.5  | better sequence for inverted single bit, other improvements
-| v2.1.4  | fixed 7segment tio code
-| v2.1.3  | consistently apply compression for all `tio.bseti`/`tio.bclri`
-| v2.1.2  | added 7segment init sample
-| v2.1.1  | minor editorial improvements
 | v2.1.0  | added `tio.beq` and `tio.bne`
-| v2.0.1  | fixed wavedrom rendering
 | v2.0.0  | major rework of encodings, the `.yy` is now destructive `.y` form,
             removed `tio.slt`/`tio.sgt` instructions, shuffled subetensions,
             added reg-reg single bit instructions, minor fixes
@@ -3719,7 +3700,7 @@ are used for control loops) The early trigger happens at least 36 cycles ahead
 (@170MHz, 12,5 cycle conv, 60MHz adc clk) of the end of conversion, requiring additional wait loop.
 c2000 guarantees that early trigger covers only irq entry latency
 
-interrupt handler with 3p3z control loop::
+typical interrupt handler with 3p3z control loop::
 [source, C++]
 ----
 #include <algorithm>
@@ -3736,65 +3717,66 @@ interrupt handler with 3p3z control loop::
 
 // aggregate into struct to avoid address loads of every single global variable 
 typedef struct {
-    // delay lines
-    float X[3]; // input // -1 indexed, as X0 is handled on the fly
-    float Y[3]; // output // -1 indexed, as Y0 is handled on the fly
+	// delay lines
+	float X[3]; // input // -1 indexed, as X0 is handled on the fly
+	float Y[3]; // output // -1 indexed, as Y0 is handled on the fly
 
-    // keep those constants in memory as compilers are trying
-    // to put them right next to the code causing von neumann bottleneck
-    // It is possible to optimize those out when something fits 
-    // in `f.li` or `lui` (Zfinx) instructions, but that's a lot of manual work 
-    float b[4];
-    float a[3]; // -1 indexed, as a0 is skipped
-    float k;
+	// keep those constants in memory as compilers are trying
+	// to put them right next to the code causing von neumann bottleneck
+	// It is possible to optimize those out when something fits 
+	// in `f.li` (Zfa) or `lui` (Zfinx) instructions, but that's a lot of manual work 
+	float b[4];
+	float a[3]; // -1 indexed, as a0 is skipped
+	float k;
 } loop_3p3z;
 
 loop_3p3z buck1 = {
-    .X = {},
-    .Y = {},
-    .b = {B0,B1,B2,B3},
-    .a = {A1,A2,A3},
-    .k = K
+	.X = {},
+	.Y = {},
+	.b = {B0,B1,B2,B3},
+	.a = {A1,A2,A3},
+	.k = K
 };
 
 void ADC1_IRQHandler()
 {
-    // ADC doesn't sign extend to 32bits, cast it by load insn
-    float in = (float)(*(int16_t*)&ADC1->DR);
+	// ADC doesn't sign extend to 32bits, cast it by load insn
+	float in = (float)(*(volatile int16_t*)&ADC1->DR);
 
-    // numerators
-    float acc = in * buck1.b[0];
-    acc += buck1.X[1 - 1] * buck1.b[1];
-    acc += buck1.X[2 - 1] * buck1.b[2];
-    acc += buck1.X[3 - 1] * buck1.b[3];
+	// numerators
+	float acc = in * buck1.b[0];
+	acc += buck1.X[1 - 1] * buck1.b[1];
+	acc += buck1.X[2 - 1] * buck1.b[2];
+	acc += buck1.X[3 - 1] * buck1.b[3];
 
-    // denominators
-    acc += buck1.Y[1 - 1] * buck1.a[1 - 1];
-    acc += buck1.Y[2 - 1] * buck1.a[2 - 1];
-    acc += buck1.Y[3 - 1] * buck1.a[3 - 1];
+	// denominators
+	acc += buck1.Y[1 - 1] * buck1.a[1 - 1];
+	acc += buck1.Y[2 - 1] * buck1.a[2 - 1];
+	acc += buck1.Y[3 - 1] * buck1.a[3 - 1];
 
-    // apply scaling
-    float out = acc * buck1.k;
+	// apply scaling
+	float out = acc * buck1.k;
 
-    // saturate negative
-    int sat = std::max((int)out, 0);
+	// saturate negative
+	int sat = std::max((int)out, 0);
 
-    // timer saturates positive values
-    HRTIM1_TIMA->CMP1xR = sat;
+	// timer saturates positive values
+	HRTIM1_TIMA->CMP1xR = sat;
 
-    // defer non critical code to after the timer write
-    // increases register pressure though
+	// defer non critical code to after the timer write
+	
+	// ack the interrupt
+	ADC1->ISR = ADC_ISR_JEOC;
 
-    // ack the interrupt
-    ADC1->ISR = ADC_ISR_JEOC;
+	// increases register pressure though 
+	// compilers sometimes undefer it (arm-gcc at -O2)
+	buck1.X[3 - 1] = buck1.X[2 - 1];
+	buck1.X[2 - 1] = buck1.X[1 - 1];
+	buck1.X[1 - 1] = in;
 
-    buck1.X[3 - 1] = buck1.X[2 - 1];
-    buck1.X[2 - 1] = buck1.X[1 - 1];
-    buck1.X[1 - 1] = in;
-
-    buck1.Y[3 - 1] = buck1.Y[2 - 1];
-    buck1.Y[2 - 1] = buck1.Y[1 - 1];
-    buck1.Y[1 - 1] = acc;
+	buck1.Y[3 - 1] = buck1.Y[2 - 1];
+	buck1.Y[2 - 1] = buck1.Y[1 - 1];
+	buck1.Y[1 - 1] = acc;
 }
 ----
 
@@ -3802,24 +3784,26 @@ To reduce register pressure and consequently improve code size (especially in ca
 of sw register stacking in irq handlers like CLIC), the X and Y arrays can be
 updated immediately after elements being consumed (at least gcc can take some advantage of it)
 
+NOTE: sometimes it makes no difference to compiler instruction scheduling
+
 [source, C]
 ----
-    // numerators
-    float acc = buck1.X[3 - 1] * buck1.b[3];
-    buck1.X[3 - 1] = buck1.X[2 - 1];
-    acc += buck1.X[2 - 1] * buck1.b[2];
-    buck1.X[2 - 1] = buck1.X[1 - 1];
-    acc += buck1.X[1 - 1] * buck1.b[1];
-    buck1.X[1 - 1] = in;
-    acc += in * buck1.b[0];
+	// numerators
+	float acc = buck1.X[3 - 1] * buck1.b[3];
+	buck1.X[3 - 1] = buck1.X[2 - 1];
+	acc += buck1.X[2 - 1] * buck1.b[2];
+	buck1.X[2 - 1] = buck1.X[1 - 1];
+	acc += buck1.X[1 - 1] * buck1.b[1];
+	buck1.X[1 - 1] = in;
+	acc += in * buck1.b[0];
 
-    // denominators
-    acc += buck1.Y[3 - 1] * buck1.a[3 - 1];
-    buck1.Y[3 - 1] = buck1.Y[2 - 1];
-    acc += buck1.Y[2 - 1] * buck1.a[2 - 1];
-    buck1.Y[2 - 1] = buck1.Y[1 - 1];
-    acc += buck1.Y[1 - 1] * buck1.a[1 - 1];
-    buck1.Y[1 - 1] = acc;
+	// denominators
+	acc += buck1.Y[3 - 1] * buck1.a[3 - 1];
+	buck1.Y[3 - 1] = buck1.Y[2 - 1];
+	acc += buck1.Y[2 - 1] * buck1.a[2 - 1];
+	buck1.Y[2 - 1] = buck1.Y[1 - 1];
+	acc += buck1.Y[1 - 1] * buck1.a[1 - 1];
+	buck1.Y[1 - 1] = acc;
 ----
 
 risc-v::
@@ -3926,7 +3910,8 @@ NOTE: on CM4 those loads could be done by one big vldm. All FMAs are 3 cycle one
 risc-v + XTightlyCoupledIO::
 [source, asm]
 ----
-	// if sign extension
+	// if ADC did sign extension to whole 32 bits 
+	//tio.fcvt.s.w fa0, ADC1_DR 
 	
 	
 	
@@ -3944,7 +3929,7 @@ risc-v + XTightlyCoupledIO::
 // NOTE: register pressure and code size analysis ommited due to compilers preffering 
 // high pressure and codesize which biases the pure assembly implementation 
 
-=== stm32 ultra low latency 3p3z (FP)
+===== ultra low latency 3p3z
 
 // assemby only
 // compilers with interrupt attribute don't care
@@ -3954,11 +3939,9 @@ risc-v + XTightlyCoupledIO::
 
 //precompute and wait fotr EOC or precompute in previous cycle
 
+===== Vref subtracted in software
 
-=== stm32 buck converter (3p3z, voltage mode, fixed point)
-
-// Vref set by sftware
-// no unaligned mem
+in case of simple ADC
 
 [bibliography]
 == Bibliography

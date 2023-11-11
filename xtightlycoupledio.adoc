@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.34
+:appversion: 3.2.35
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.35 | reimplement 3p3z to transposed direct form II
 | v3.2.34 | some cleanup, removed v2 patch changes from revision history
 | v3.2.33 | fixed ADC to float reads, low reg pressure 3p3z sample
 | v3.2.32 | some corrections
@@ -3680,7 +3681,7 @@ and it does happen <<typepunnedacces1>>,<<typepunnedacces2>>  until `-fstrict-vo
 Therefore the explicit volatile load/store must always be porformed to safely use type punning by bitfields.
 (c2000 cannot do narrower access than 16 bits so their compiler cannot break 16bit peripherals)
 
-=== stm32g4 buck converter irq (3p3z, voltage mode, floating point)
+=== stm32g4 buck converter (3p3z, voltage mode)
 
 NOTE: interrupt overhead and related optimizations are out of scope of Xtighlycoupledio,
 therefore only a C function scenario is analysed. See <<xteic>> for further irq latency analysis.
@@ -3700,7 +3701,45 @@ are used for control loops) The early trigger happens at least 36 cycles ahead
 (@170MHz, 12,5 cycle conv, 60MHz adc clk) of the end of conversion, requiring additional wait loop.
 c2000 guarantees that early trigger covers only irq entry latency
 
-typical interrupt handler with 3p3z control loop::
+==== ultra low latency 3p3z
+
+In order to reduce phase erosion (by up to 18 degres according to <<an5305>>) the
+ADC blanking period have to be extended towards the end of cycle. +
+The following techniques can be employed to improve sample to PWM update latency.
+
+- Use ADC early trigger (if available). When conversion extends over the computations, then
+the explicit wait is necessary before reading result (`while(!(ADC1->ISR & ADC_ISR_JEOSMP));` which can
+resolve to `1: tio.bsbclri ADC1_ISR, ADC_ISR_JEOSMP_Pos, 1b`)
+- Use transposed direct form II with natural result latency of 1 MAC operation
+- Direct form I implementation can precompute most of the accumulations in previous cycle
+- Defer the state updates to after the write to timer registers (straightforward direct form I)
+
+NOTE: Some of these techniques can affect the latency by imposing additional register pressure.
+Even if output is computed early, the compiler will spill all registers before executing
+actual code. Compilers also have tendency to reschedule code around the sensitive IO write.
+Therefore assembly implementations may be necessary.
+
+===== Vref subtracted in software
+
+In case of simple ADC, the target voltage can be subtracted directly from
+ADC readout:
+
+[source, C]
+----
+	int32_t in = ADC1->DR - Vref;
+----
+
+which can resolve to:
+
+[source, asm]
+----
+	// Vref in a0
+	tio.sub a0, ADC1_DR, a0
+----
+
+==== irq implementation (floating point)
+
+3p3z control loop irq implemented with transpoed direct form II::
 [source, C++]
 ----
 #include <algorithm>
@@ -3717,9 +3756,8 @@ typical interrupt handler with 3p3z control loop::
 
 // aggregate into struct to avoid address loads of every single global variable 
 typedef struct {
-	// delay lines
-	float X[3]; // input // -1 indexed, as X0 is handled on the fly
-	float Y[3]; // output // -1 indexed, as Y0 is handled on the fly
+	// delay line
+	float Z[3]; // -1 indexed, as Z0 is handled on the fly
 
 	// keep those constants in memory as compilers are trying
 	// to put them right next to the code causing von neumann bottleneck
@@ -3728,11 +3766,10 @@ typedef struct {
 	float b[4];
 	float a[3]; // -1 indexed, as a0 is skipped
 	float k;
-} loop_3p3z;
+} TDF2_3p3z;
 
-loop_3p3z buck1 = {
-	.X = {},
-	.Y = {},
+TDF2_3p3z buck2 = {
+	.Z = {},
 	.b = {B0,B1,B2,B3},
 	.a = {A1,A2,A3},
 	.k = K
@@ -3743,19 +3780,10 @@ void ADC1_IRQHandler()
 	// ADC doesn't sign extend to 32bits, cast it by load insn
 	float in = (float)(*(volatile int16_t*)&ADC1->DR);
 
-	// numerators
-	float acc = in * buck1.b[0];
-	acc += buck1.X[1 - 1] * buck1.b[1];
-	acc += buck1.X[2 - 1] * buck1.b[2];
-	acc += buck1.X[3 - 1] * buck1.b[3];
-
-	// denominators
-	acc += buck1.Y[1 - 1] * buck1.a[1 - 1];
-	acc += buck1.Y[2 - 1] * buck1.a[2 - 1];
-	acc += buck1.Y[3 - 1] * buck1.a[3 - 1];
+	float yn = buck2.Z[0] + in * buck2.b[0];
 
 	// apply scaling
-	float out = acc * buck1.k;
+	float out = yn * buck2.k;
 
 	// saturate negative
 	int sat = std::max((int)out, 0);
@@ -3764,46 +3792,12 @@ void ADC1_IRQHandler()
 	HRTIM1_TIMA->CMP1xR = sat;
 
 	// defer non critical code to after the timer write
-	
-	// ack the interrupt
-	ADC1->ISR = ADC_ISR_JEOC;
+    ADC1->ISR = ADC_ISR_JEOC; // ack the interrupt
 
-	// increases register pressure though 
-	// compilers sometimes undefer it (arm-gcc at -O2)
-	buck1.X[3 - 1] = buck1.X[2 - 1];
-	buck1.X[2 - 1] = buck1.X[1 - 1];
-	buck1.X[1 - 1] = in;
-
-	buck1.Y[3 - 1] = buck1.Y[2 - 1];
-	buck1.Y[2 - 1] = buck1.Y[1 - 1];
-	buck1.Y[1 - 1] = acc;
+	buck2.Z[0] = buck2.Z[1] + in * buck2.b[1] + yn * buck2.a[1 - 1];
+	buck2.Z[1] = buck2.Z[2] + in * buck2.b[2] + yn * buck2.a[2 - 1];
+	buck2.Z[2] = in * buck2.b[3] + yn * buck2.a[3 - 1];
 }
-----
-
-To reduce register pressure and consequently improve code size (especially in case
-of sw register stacking in irq handlers like CLIC), the X and Y arrays can be
-updated immediately after elements being consumed (at least gcc can take some advantage of it)
-
-NOTE: sometimes it makes no difference to compiler instruction scheduling
-
-[source, C]
-----
-	// numerators
-	float acc = buck1.X[3 - 1] * buck1.b[3];
-	buck1.X[3 - 1] = buck1.X[2 - 1];
-	acc += buck1.X[2 - 1] * buck1.b[2];
-	buck1.X[2 - 1] = buck1.X[1 - 1];
-	acc += buck1.X[1 - 1] * buck1.b[1];
-	buck1.X[1 - 1] = in;
-	acc += in * buck1.b[0];
-
-	// denominators
-	acc += buck1.Y[3 - 1] * buck1.a[3 - 1];
-	buck1.Y[3 - 1] = buck1.Y[2 - 1];
-	acc += buck1.Y[2 - 1] * buck1.a[2 - 1];
-	buck1.Y[2 - 1] = buck1.Y[1 - 1];
-	acc += buck1.Y[1 - 1] * buck1.a[1 - 1];
-	buck1.Y[1 - 1] = acc;
 ----
 
 risc-v::
@@ -3812,43 +3806,37 @@ risc-v::
 ADC1_IRQHandler():                   # @ADC1_IRQHandler()
 	lui     a0, 327680
 	lh      a1, 64(a0)
-	fcvt.s.w	ft0, a1
-	lui     a1, %hi(buck1)
-	addi    a2, a1, %lo(buck1)
-	flw     ft1, 24(a2)
-	flw     ft2, %lo(buck1)(a1)
-	flw     ft3, 28(a2)
-	flw     ft4, 4(a2)
-	flw     ft5, 32(a2)
-	flw     ft6, 8(a2)
-	flw     ft7, 36(a2)
-	fmul.s  ft1, ft1, ft0
-	fmadd.s ft1, ft2, ft3, ft1
-	fmadd.s ft1, ft4, ft5, ft1
-	fmadd.s ft1, ft6, ft7, ft1
-	flw     ft3, 12(a2)
-	flw     ft5, 40(a2)
-	flw     ft6, 16(a2)
-	flw     ft7, 44(a2)
-	flw     fa0, 20(a2)
-	flw     fa1, 48(a2)
-	flw     fa2, 52(a2)
-	fmadd.s ft1, ft3, ft5, ft1
-	fmadd.s ft1, ft6, ft7, ft1
-	fmadd.s ft1, fa0, fa1, ft1
-	fmul.s  ft5, ft1, fa2
-	fcvt.w.s	a3, ft5, rtz
-	max     a3, a3, zero
+	lui     a2, %hi(buck2)
+	flw     ft0, %lo(buck2)(a2)
+	addi    a3, a2, %lo(buck2)
+	flw     ft1, 12(a3)
+	flw     ft2, 40(a3)
+	fcvt.s.w	ft3, a1
+	fmadd.s ft0, ft3, ft1, ft0
+	fmul.s  ft1, ft0, ft2
+	fcvt.w.s	a1, ft1, rtz
+	max     a1, a1, zero
 	lui     a4, 262167
-	sw      a3, -1892(a4)
-	li      a3, 32
-	sw      a3, 0(a0)
-	fsw     ft4, 8(a2)
-	fsw     ft2, 4(a2)
-	fsw     ft0, %lo(buck1)(a1)
-	fsw     ft6, 20(a2)
-	fsw     ft3, 16(a2)
-	fsw     ft1, 12(a2)
+	sw      a1, -1892(a4)
+	li      a1, 32
+	sw      a1, 0(a0)
+	flw     ft1, 4(a3)
+	flw     ft2, 16(a3)
+	flw     ft4, 28(a3)
+	fmadd.s ft1, ft3, ft2, ft1
+	fmadd.s ft1, ft0, ft4, ft1
+	fsw     ft1, %lo(buck2)(a2)
+	flw     ft1, 8(a3)
+	flw     ft2, 20(a3)
+	flw     ft4, 32(a3)
+	fmadd.s ft1, ft3, ft2, ft1
+	flw     ft2, 36(a3)
+	flw     ft5, 24(a3)
+	fmadd.s ft1, ft0, ft4, ft1
+	fsw     ft1, 4(a3)
+	fmul.s  ft0, ft0, ft2
+	fmadd.s ft0, ft3, ft5, ft0
+	fsw     ft0, 8(a3)
 	ret
 ----
 
@@ -3864,48 +3852,43 @@ ADC1_IRQHandler():
 	ldrsh   r3, [r1, #64]
 	vmov    s13, r3 @ int
 	ldr     r3, .L2+4
-	vldr.32 s10, [r3]
-	vldr.32 s15, [r3, #28]
-	vldr.32 s14, [r3, #24]
-	vldr.32 s9, [r3, #4]
-	vldr.32 s12, [r3, #8]
-	vldr.32 s11, [r3, #16]
-	vldr.32 s8, [r3, #20]
 	vcvt.f32.s32    s13, s13
-	vmul.f32	s15, s10, s15
+	vldr.32 s14, [r3, #12]
+	vldr.32 s15, [r3]
+	vldr.32 s12, [r3, #16]
 	vfma.f32	s15, s14, s13
-	vldr.32 s14, [r3, #32]
-	vfma.f32	s15, s9, s14
-	vldr.32 s14, [r3, #36]
-	vfma.f32	s15, s12, s14
-	vldr.32 s12, [r3, #12]
 	vldr.32 s14, [r3, #40]
-	vfma.f32	s15, s12, s14
-	vldr.32 s14, [r3, #44]
-	vfma.f32	s15, s11, s14
-	vldr.32 s14, [r3, #48]
-	vfma.f32	s15, s8, s14
-	vldr.32 s14, [r3, #52]
 	vmul.f32	s14, s15, s14
 	vcvt.s32.f32    s14, s14
 	vmov    r2, s14 @ int
+	vldr.32 s14, [r3, #4]
+	vfma.f32	s14, s12, s13
 	bic     r2, r2, r2, asr #31
 	str     r2, [r0, #156]
+	vldr.32 s12, [r3, #28]
+	vfma.f32	s14, s12, s15
 	movs    r2, #32
 	str     r2, [r1]
-	vstr.32 s9, [r3, #8]
-	vstr.32 s10, [r3, #4]
-	vstr.32 s13, [r3]
-	vstr.32 s11, [r3, #20]
-	vstr.32 s12, [r3, #16]
-	vstr.32 s15, [r3, #12]
+	vldr.32 s12, [r3, #20]
+	vstr.32 s14, [r3]
+	vldr.32 s14, [r3, #8]
+	vfma.f32	s14, s12, s13
+	vldr.32 s12, [r3, #32]
+	vfma.f32	s14, s12, s15
+	vstr.32 s14, [r3, #4]
+	vldr.32 s14, [r3, #36]
+	vmul.f32	s15, s15, s14
+	vldr.32 s14, [r3, #24]
+	vfma.f32	s15, s14, s13
+	vstr.32 s15, [r3, #8]
 	bx      lr
 .L2:
 	.word   1073833984
 	.word   .LANCHOR0
 ----
 
-NOTE: on CM4 those loads could be done by one big vldm. All FMAs are 3 cycle ones anyway
+NOTE: gcc result was manipulated with non volatile casting due to missing optimization
+`float in = (float)(*(int16_t*)&ADC1->DR);`
 
 risc-v + XTightlyCoupledIO::
 [source, asm]
@@ -3928,20 +3911,6 @@ risc-v + XTightlyCoupledIO::
 
 // NOTE: register pressure and code size analysis ommited due to compilers preffering 
 // high pressure and codesize which biases the pure assembly implementation 
-
-===== ultra low latency 3p3z
-
-// assemby only
-// compilers with interrupt attribute don't care
-// for further see Xteic
-
-//the accumulation can pre computed in previous cycle
-
-//precompute and wait fotr EOC or precompute in previous cycle
-
-===== Vref subtracted in software
-
-in case of simple ADC
 
 [bibliography]
 == Bibliography

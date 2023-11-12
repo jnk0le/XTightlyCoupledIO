@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.36
+:appversion: 3.2.37
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.37 | summary comparison of 3p3z, further optimizations
 | v3.2.36 | added tio implementation of 3p3z sample
 | v3.2.35 | reimplement 3p3z to transposed direct form II
 | v3.2.34 | some cleanup, removed v2 patch changes from revision history
@@ -3738,6 +3739,15 @@ which can resolve to:
 tio.sub a0, ADC1_DR, a0
 ----
 
+alternatively:
+
+[source, asm]
+----
+// Vref in fa0
+tio.fcvt.s.wu fa1, ADC1_DR
+fsub.s fa0, fa1, fa0
+----
+
 ==== irq implementation (floating point)
 
 3p3z control loop irq implemented with transpoed direct form II::
@@ -3896,8 +3906,8 @@ ADC1_IRQHandler():
 	//tio.fcvt.s.w fa0, ADC1_DR // tio.fcvt.s.h not available
 	tio.sbfextracti a1, ADC1_DR, 0, 16 // tio.sext.h not available
 	fcvt.s.w fa0, a1
-	lui a0, %hi(buck2)
-	addi a0, a0, %lo(buck2) // can be omitted if struct doesn't span the boundary
+	lui a0, %hi(buck2) // lui+addi not needed when it can be `gp` relaxed
+	addi a0, a0, %lo(buck2) // can be omitted if struct doesn't span +/-2KiB boundary
 	flw fa1, 0(a0) // Z[0]
 	flw fa2, 12(a0) // b[0]
 	flw fa3, 40(a0) // k
@@ -3926,6 +3936,79 @@ ADC1_IRQHandler():
 	ret
 ----
 
+NOTE: register pressure is 2 scalar and 4 fp registers, or possible 5 total with Zfinx.
+Applying pipeline optimizations may increase it a bit.
+
+Assuming all instructions execute in 1 cycle and there are no pipeline hazard bubbles:
+
+Results::
+[cols="3,1,1,1",options=header]
+|====
+|  | risc-v | armv7-m | risc-v + XTightlyCoupledIO
+| total cycles (possible)  | 34(32) | 35 | 30(27)
+| non IIR loads/stores     | 2 | 4(2 pcrel) | 0
+| cycles to PWM (possible) | 14(11) | 18(15) | 11(8)
+|====
+
+===== further latency improvements
+
+by adc early trigger::
+[source, asm]
+----
+1:	tio.bsbclri ADC1_ISR, ADC_ISR_JEOSMP_Pos, 1b
+	tio.fcvt.s.w fa0, ADC1_DR
+	fmadd.s fa1, fa0, fa2, fa1 // * b[0] + Z[0]
+	fmul fa3, fa1, fa3 // * K
+	fcvt.w.s a1, fa3
+	tio.max HRTIM1_TIMA_CMP1xR, a1, zero
+----
+
+NOTE: `tio.bsbclri/seti` can be implemented as a pipeline stall until condition is met.
+Wchich avoids introducing jitter/latency from a branch overhead.
+
+by "preserving shadow registers" (+Zfinx)::
+[source, asm]
+----
+// allocation of preserving shadow registers
+// x4 - K
+// x5 - A1
+// x6 - A2
+// x7 - A3
+// x12 - x
+// x13 - x
+// x14 - x
+// x15 - x
+// x20 - Z[0]
+// x21 - Z[1]
+// x22 - Z[2]
+// x23 - x
+// x28 - B0
+// x29 - B1
+// x30 - B2
+// x31 - B3
+
+ADC1_IRQHandler():
+	tio.fcvt.s.w a0, ADC1_DR // adc sign extends
+	fmadd.s a1, a0, x28, x20
+	fmul.s a2, a1, x4 // a2 not required if PWM write can be deffered
+	fcvt.w.s a2, a2
+	tio.max HRTIM1_TIMA_CMP1xR, a2, zero
+	tio.bseti ADC1_ISR, zero, ADC_ISR_JEOC_Pos // can also tio.addi
+	fmadd.s x20, a0, x29, x21
+	fmadd.s x21, a0, x30, x22
+	fmul.s x22, a0, x31 // a0 no longer needed, can do the PWM here
+	fmadd.s x20, a1, x5, x20
+	fmadd.s x21, a1, x6, x21
+	fmadd.s x22, a1, x7, x22	
+	ret
+----
+
+13 instructions total, 5 to pwm (8 at lower reg pressure)
+
+NOTE: in <<xteic>> initializing those shadow registers would require triggering SW deffered handler
+configured at desired nesting priority.
+
+NOTE: FMA4 instructions allow to get rid of 2 unnecesary moves (as per TDF2 implementation)
 
 [bibliography]
 == Bibliography

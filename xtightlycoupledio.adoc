@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.38
+:appversion: 3.2.39
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.39 | adjust table
 | v3.2.38 | adjust table
 | v3.2.37 | summary comparison of 3p3z, further optimizations
 | v3.2.36 | added tio implementation of 3p3z sample
@@ -3943,7 +3944,7 @@ Applying pipeline optimizations may increase it a bit.
 Assuming all instructions execute in 1 cycle and there are no pipeline hazard bubbles:
 
 Results::
-[cols="2,1,1,1",options=header]
+[cols="3,2,2,2",options=header]
 |====
 |  | risc-v | armv7-m | risc-v + XTightlyCoupledIO
 | total cycles (possible)  | 34(32) | 35 | 30(27)

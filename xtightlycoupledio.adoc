@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.39
+:appversion: 3.2.40
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.40 | found another AN describing some of the tricks
 | v3.2.39 | adjust table
 | v3.2.38 | adjust table
 | v3.2.37 | summary comparison of 3p3z, further optimizations
@@ -3707,7 +3708,7 @@ c2000 guarantees that early trigger covers only irq entry latency
 
 ==== ultra low latency 3p3z
 
-In order to reduce phase erosion (by up to 18 degres according to <<an5305>>) the
+In order to reduce phase erosion (by up to 16 or 18 degres according to <<h2pdspic>>,<<an5305>>) the
 ADC blanking period have to be extended towards the end of cycle. +
 The following techniques can be employed to improve sample to PWM update latency.
 
@@ -3715,7 +3716,7 @@ The following techniques can be employed to improve sample to PWM update latency
 the explicit wait is necessary before reading result (`while(!(ADC1->ISR & ADC_ISR_JEOSMP));` which can
 resolve to `1: tio.bsbclri ADC1_ISR, ADC_ISR_JEOSMP_Pos, 1b`)
 - Use transposed direct form II with natural result latency of 1 MAC operation
-- Direct form I implementation can precompute most of the accumulations in previous cycle
+- (in e.g. Direct form I) precompute most of the accumulations in previous cycle, as described in <<h2pdspic>>
 - Defer the state updates to after the write to timer registers (straightforward direct form I)
 
 NOTE: Some of these techniques can affect the latency by imposing additional register pressure.
@@ -4036,3 +4037,4 @@ NOTE: FMA4 instructions allow to get rid of 2 unnecesary moves (as per TDF2 impl
 * [[[DSP56800RM, 19]]] https://www.nxp.com/docs/en/reference-manual/DSP56800FM.pdf
 * [[[xteic, 20]]] https://github.com/jnk0le/riscv-total-embedded
 * [[[an5305, 21]]] https://www.st.com/resource/en/application_note/an5305-digital-filter-implementation-with-the-fmac-using-stm32cubeg4-mcu-package-stmicroelectronics.pdf
+* [[[h2pdspic, 22]]] https://www.how2power.com/newsletters/1603/articles/H2PToday1603_design_Microchip.pdf?NOREDIR=1

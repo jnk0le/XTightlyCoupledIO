@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.40
+:appversion: 3.2.41
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.41 | optimized 3p3z output scaling
 | v3.2.40 | found another AN describing some of the tricks
 | v3.2.39 | adjust table
 | v3.2.38 | adjust table
@@ -3713,11 +3714,12 @@ ADC blanking period have to be extended towards the end of cycle. +
 The following techniques can be employed to improve sample to PWM update latency.
 
 - Use ADC early trigger (if available). When conversion extends over the computations, then
-the explicit wait is necessary before reading result (`while(!(ADC1->ISR & ADC_ISR_JEOSMP));` which can
-resolve to `1: tio.bsbclri ADC1_ISR, ADC_ISR_JEOSMP_Pos, 1b`)
+the explicit wait may be necessary before reading result (`while(!(ADC1->ISR & ADC_ISR_JEOSMP));` which can
+resolve to `1: tio.bsbclri ADC1_ISR, ADC_ISR_JEOSMP_Pos, 1b`) <<h2pdspic>>
 - Use transposed direct form II with natural result latency of 1 MAC operation
 - (in e.g. Direct form I) precompute most of the accumulations in previous cycle, as described in <<h2pdspic>>
-- Defer the state updates to after the write to timer registers (straightforward direct form I)
+- Defer the state updates to after the write to timer registers
+- apply gain factor (K) to the numerator coefficients instead of applying it separatly. (FP)
 
 NOTE: Some of these techniques can affect the latency by imposing additional register pressure.
 Even if output is computed early, the compiler will spill all registers before executing
@@ -3779,14 +3781,12 @@ typedef struct {
 	// in `f.li` (Zfa) or `lui` (Zfinx) instructions, but that's a lot of manual work 
 	float b[4];
 	float a[3]; // -1 indexed, as a0 is skipped
-	float k;
 } TDF2_3p3z;
 
 TDF2_3p3z buck2 = {
 	.Z = {},
-	.b = {B0,B1,B2,B3},
-	.a = {A1,A2,A3},
-	.k = K
+	.b = {B0*K,B1*K,B2*K,B3*K},
+	.a = {A1,A2,A3}
 };
 
 void ADC1_IRQHandler()
@@ -3794,23 +3794,17 @@ void ADC1_IRQHandler()
 	// ADC doesn't sign extend to 32bits, cast it by load insn
 	float in = (float)(*(volatile int16_t*)&ADC1->DR);
 
-	float yn = buck2.Z[0] + in * buck2.b[0];
+	float out = buck2.Z[0] + in * buck2.b[0];
 
-	// apply scaling
-	float out = yn * buck2.k;
-
-	// saturate negative
-	int sat = std::max((int)out, 0);
-
-	// timer saturates positive values
-	HRTIM1_TIMA->CMP1xR = sat;
+	// saturate negative, timer saturates positive
+	HRTIM1_TIMA->CMP1xR = std::max((int)out, 0);
 
 	// defer non critical code to after the timer write
     ADC1->ISR = ADC_ISR_JEOC; // ack the interrupt
 
-	buck2.Z[0] = buck2.Z[1] + in * buck2.b[1] + yn * buck2.a[1 - 1];
-	buck2.Z[1] = buck2.Z[2] + in * buck2.b[2] + yn * buck2.a[2 - 1];
-	buck2.Z[2] = in * buck2.b[3] + yn * buck2.a[3 - 1];
+	buck2.Z[0] = buck2.Z[1] + in * buck2.b[1] + out * buck2.a[1 - 1];
+	buck2.Z[1] = buck2.Z[2] + in * buck2.b[2] + out * buck2.a[2 - 1];
+	buck2.Z[2] = in * buck2.b[3] + out * buck2.a[3 - 1];
 }
 ----
 
@@ -3824,32 +3818,30 @@ ADC1_IRQHandler():                   # @ADC1_IRQHandler()
 	flw     ft0, %lo(buck2)(a2)
 	addi    a3, a2, %lo(buck2)
 	flw     ft1, 12(a3)
-	flw     ft2, 40(a3)
-	fcvt.s.w	ft3, a1
-	fmadd.s ft0, ft3, ft1, ft0
-	fmul.s  ft1, ft0, ft2
-	fcvt.w.s	a1, ft1, rtz
+	fcvt.s.w	ft2, a1
+	fmadd.s ft0, ft2, ft1, ft0
+	fcvt.w.s	a1, ft0, rtz
 	max     a1, a1, zero
 	lui     a4, 262167
 	sw      a1, -1892(a4)
 	li      a1, 32
 	sw      a1, 0(a0)
 	flw     ft1, 4(a3)
-	flw     ft2, 16(a3)
+	flw     ft3, 16(a3)
 	flw     ft4, 28(a3)
-	fmadd.s ft1, ft3, ft2, ft1
+	fmadd.s ft1, ft2, ft3, ft1
 	fmadd.s ft1, ft0, ft4, ft1
 	fsw     ft1, %lo(buck2)(a2)
 	flw     ft1, 8(a3)
-	flw     ft2, 20(a3)
+	flw     ft3, 20(a3)
 	flw     ft4, 32(a3)
-	fmadd.s ft1, ft3, ft2, ft1
-	flw     ft2, 36(a3)
+	fmadd.s ft1, ft2, ft3, ft1
+	flw     ft3, 36(a3)
 	flw     ft5, 24(a3)
 	fmadd.s ft1, ft0, ft4, ft1
 	fsw     ft1, 4(a3)
-	fmul.s  ft0, ft0, ft2
-	fmadd.s ft0, ft3, ft5, ft0
+	fmul.s  ft0, ft0, ft3
+	fmadd.s ft0, ft2, ft5, ft0
 	fsw     ft0, 8(a3)
 	ret
 ----
@@ -3861,36 +3853,34 @@ ADC1_IRQHandler():
 	mov     r1, #1342177280
 	ldr     r0, .L2
 	ldrsh   r3, [r1, #64]
-	vmov    s13, r3 @ int
+	vmov    s14, r3 @ int
 	ldr     r3, .L2+4
-	vcvt.f32.s32    s13, s13
-	vldr.32 s14, [r3, #12]
+	vcvt.f32.s32    s14, s14
+	vldr.32 s13, [r3, #12]
 	vldr.32 s15, [r3]
 	vldr.32 s12, [r3, #16]
-	vfma.f32	s15, s14, s13
-	vldr.32 s14, [r3, #40]
-	vmul.f32	s14, s15, s14
-	vcvt.s32.f32    s14, s14
-	vmov    r2, s14 @ int
-	vldr.32 s14, [r3, #4]
-	vfma.f32	s14, s12, s13
+	vfma.f32	s15, s13, s14
+	vcvt.s32.f32    s13, s15
+	vmov    r2, s13 @ int
+	vldr.32 s13, [r3, #4]
+	vfma.f32	s13, s12, s14
 	bic     r2, r2, r2, asr #31
 	str     r2, [r0, #156]
 	vldr.32 s12, [r3, #28]
-	vfma.f32	s14, s12, s15
+	vfma.f32	s13, s12, s15
 	movs    r2, #32
 	str     r2, [r1]
 	vldr.32 s12, [r3, #20]
-	vstr.32 s14, [r3]
-	vldr.32 s14, [r3, #8]
-	vfma.f32	s14, s12, s13
+	vstr.32 s13, [r3]
+	vldr.32 s13, [r3, #8]
+	vfma.f32	s13, s12, s14
 	vldr.32 s12, [r3, #32]
-	vfma.f32	s14, s12, s15
-	vstr.32 s14, [r3, #4]
-	vldr.32 s14, [r3, #36]
-	vmul.f32	s15, s15, s14
-	vldr.32 s14, [r3, #24]
-	vfma.f32	s15, s14, s13
+	vfma.f32	s13, s12, s15
+	vstr.32 s13, [r3, #4]
+	vldr.32 s13, [r3, #36]
+	vmul.f32	s15, s15, s13
+	vldr.32 s13, [r3, #24]
+	vfma.f32	s15, s13, s14
 	vstr.32 s15, [r3, #8]
 	bx      lr
 .L2:
@@ -3913,9 +3903,7 @@ ADC1_IRQHandler():
 	addi a0, a0, %lo(buck2) // can be omitted if struct doesn't span +/-2KiB boundary
 	flw fa1, 0(a0) // Z[0]
 	flw fa2, 12(a0) // b[0]
-	flw fa3, 40(a0) // k
 	fmadd.s fa1, fa0, fa2, fa1
-	fmul fa3, fa1, fa3
 	fcvt.w.s a1, fa3
 	tio.max HRTIM1_TIMA_CMP1xR, a1, zero
 	tio.bseti ADC1_ISR, zero, ADC_ISR_JEOC_Pos // can also tio.addi
@@ -3948,9 +3936,9 @@ Results::
 [cols="3,2,2,2",options=header]
 |====
 |  | risc-v | armv7-m | risc-v + XTightlyCoupledIO
-| total cycles (possible)  | 34(32) | 35 | 30(27)
-| non IIR loads/stores     | 2 | 4(2 pcrel) | 0
-| cycles to PWM (possible) | 14(11) | 18(15) | 11(8)
+| total cycles (possible)  | 32(30) | 33 | 28(25)
+| non filter loads/stores  | 2 | 4(2 pcrel) | 0
+| cycles to PWM (possible) | 12(10) | 16(13) | 9(6)
 |====
 
 ===== further latency improvements
@@ -3961,7 +3949,6 @@ by adc early trigger::
 1:	tio.bsbclri ADC1_ISR, ADC_ISR_JEOSMP_Pos, 1b
 	tio.fcvt.s.w fa0, ADC1_DR
 	fmadd.s fa1, fa0, fa2, fa1 // * b[0] + Z[0]
-	fmul fa3, fa1, fa3 // * K
 	fcvt.w.s a1, fa3
 	tio.max HRTIM1_TIMA_CMP1xR, a1, zero
 ----
@@ -3973,7 +3960,7 @@ by "preserving shadow registers" (+Zfinx)::
 [source, asm]
 ----
 // allocation of preserving shadow registers
-// x4 - K
+// x4 - x
 // x5 - A1
 // x6 - A2
 // x7 - A3
@@ -3993,8 +3980,7 @@ by "preserving shadow registers" (+Zfinx)::
 ADC1_IRQHandler():
 	tio.fcvt.s.w a0, ADC1_DR // adc sign extends
 	fmadd.s a1, a0, x28, x20
-	fmul.s a2, a1, x4 // a2 not required if PWM write can be deffered
-	fcvt.w.s a2, a2
+	fcvt.w.s a2, a1 // a2 not required if PWM write can be deffered
 	tio.max HRTIM1_TIMA_CMP1xR, a2, zero
 	tio.bseti ADC1_ISR, zero, ADC_ISR_JEOC_Pos // can also tio.addi
 	fmadd.s x20, a0, x29, x21
@@ -4006,7 +3992,7 @@ ADC1_IRQHandler():
 	ret
 ----
 
-13 instructions total, 5 to pwm (8 at lower reg pressure)
+12 instructions total, 4 to pwm (7 at lower reg pressure, fits rv32e regs)
 
 NOTE: in <<xteic>> initializing those shadow registers would require triggering SW deffered handler
 configured at desired nesting priority.

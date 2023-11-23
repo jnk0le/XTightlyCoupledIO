@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.41
+:appversion: 3.2.42
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.42 | some improvements in x86 section
 | v3.2.41 | optimized 3p3z output scaling
 | v3.2.40 | found another AN describing some of the tricks
 | v3.2.39 | adjust table
@@ -252,11 +253,12 @@ x86 offers an 16 bit IO address space accessible by `in*` and `out*` instruction
 
 There is some legacy peripherals at fixed IO addresses. The rest are typically remappable.
 
-Originally designed for 8080/8086 peripherals hanging on an off-chip bus, today
-serving as a legacy ballast. As the address space is no more constrained
+Originally designed for 8080/8086 peripherals hanging on an off-chip bus, and thus not
+being tightly integrated.
+Today serving as a legacy ballast. As the address space is no more constrained
 and the code size gains are negligible. +
-Especially considering the fact that the modern peripherals use MMIO 
-mappings instead.
+Especially considering the fact that the offending peripherals typically use MMIO 
+mappings instead anyway.
 
 ==== xmos
 

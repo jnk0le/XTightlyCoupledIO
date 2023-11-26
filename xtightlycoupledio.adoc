@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.44
+:appversion: 3.2.45
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.45 | typo, anti windup satration not considered
 | v3.2.44 | add code size comparisons to stm32f0 samples
 | v3.2.43 | reorganized 3p3z appendix
 | v3.2.42 | some improvements in x86 section
@@ -3429,7 +3430,7 @@ Results::
 |====
 Results assume that FLASH/SRAM are kept at typical 0x08000000/0x20000000 addresses
 
-NOTE:`gp` relaxing can further reduce risc-v sizes
+NOTE: `gp` relaxing can further reduce risc-v sizes
 
 === c2000 workshop sample
 
@@ -3737,7 +3738,9 @@ magic numbers and overall design according to <<an5305>>, that provides followin
 - Vref (aka target voltage, not to be confused with ADC reference voltage) set by DAC on the
 differential ADC, or subtracted by ADC from result (`ADC_OFRy`).
 - ADC handles sign extension to 16 bits (right adjusted)
-- timer saturates the output to maximum duty (no neg to zero saturation still)
+- timer saturates the output to maximum duty (assuming >16bit values are not produced, or handled 
+by timer)
+- anti windup accumulator saturation (as used by denominators) not considered
 - early conversion trigger not available
 
 NOTE: On stm32g4 it is possible to do c2000/dsPIC like early ADC trigger but
@@ -4025,12 +4028,12 @@ by "preserving shadow registers" (+Zfinx)::
 ADC1_IRQHandler():
 	tio.fcvt.s.w a0, ADC1_DR // adc sign extends
 	fmadd.s a1, a0, x28, x20
-	fcvt.w.s a2, a1 // a2 not required if PWM write can be deffered
-	tio.max HRTIM1_TIMA_CMP1xR, a2, zero
+	fcvt.wu.s a2, a1 // saaturate negative, UB in C/C++
+	tio.cm.mv HRTIM1_TIMA_CMP1xR, a2 // can do tio.max after fcvt.w
 	tio.bseti ADC1_ISR, zero, ADC_ISR_JEOC_Pos // can also tio.addi
 	fmadd.s x20, a0, x29, x21
 	fmadd.s x21, a0, x30, x22
-	fmul.s x22, a0, x31 // a0 no longer needed, can do the PWM here
+	fmul.s x22, a0, x31 // a0 no longer needed, can do the PWM here at lower reg pressure
 	fmadd.s x20, a1, x5, x20
 	fmadd.s x21, a1, x6, x21
 	fmadd.s x22, a1, x7, x22
@@ -4038,6 +4041,7 @@ ADC1_IRQHandler():
 ----
 
 12 instructions total, 4 to pwm (7 at lower reg pressure, fits rv32e regs)
+It can be implemented only in assembly.
 
 NOTE: in <<xteic>> initializing those shadow registers would require triggering SW deffered handler
 configured at desired nesting priority.

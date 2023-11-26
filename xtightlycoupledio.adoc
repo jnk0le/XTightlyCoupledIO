@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.43
+:appversion: 3.2.44
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.44 | add code size comparisons to stm32f0 samples
 | v3.2.43 | reorganized 3p3z appendix
 | v3.2.42 | some improvements in x86 section
 | v3.2.41 | optimized 3p3z output scaling
@@ -2807,6 +2808,13 @@ toggle():
 	ret
 ----
 
+Results::
+[cols="3,2,2,2",options=header]
+|====
+|  | risc-v | armv7-m | risc-v + XTightlyCoupledIO
+| code size (bytes) | 18 | 16 | 6
+|====
+
 === stm32f0 minimum PLL clock init (assume reset state of registers, no other config)
 
 [source, C]
@@ -2842,7 +2850,7 @@ init_clocks():                       # @init_clocks()
 	lw      a1, 0(a0)
 	slli    a1, a1, 6
 	bgez    a1, .LBB0_1
-	lui     a0, 262177
+	lui     a0, 262177 // redundant
 	lw      a1, 4(a0)
 	ori     a1, a1, 2
 	sw      a1, 4(a0)
@@ -2904,6 +2912,13 @@ init_clocks():
 	ret
 ----
 
+Results::
+[cols="3,2,2,2",options=header]
+|====
+|  | risc-v | armv7-m | risc-v + XTightlyCoupledIO
+| code size (bytes) | 58(54 without redundant lui) | 52 | 28
+|====
+
 === stm32f0 minimum PLL clock init (assume unknown or "worst case" state of registers)
 
 [source, C]
@@ -2958,7 +2973,7 @@ init_clocks2():                      # @init_clocks2()
 	lw      a1, 0(a0)
 	slli    a1, a1, 6
 	bltz    a1, .LBB1_4
-	lui     a0, 262177
+	lui     a0, 262177 // redundant
 	lw      a1, 4(a0)
 	lui     a2, 1047616
 	addi    a2, a2, -1
@@ -2973,7 +2988,7 @@ init_clocks2():                      # @init_clocks2()
 	lw      a1, 0(a0)
 	slli    a1, a1, 6
 	bgez    a1, .LBB1_6
-	lui     a0, 262177
+	lui     a0, 262177 // redundant
 	lw      a1, 4(a0)
 	andi    a1, a1, -4
 	ori     a1, a1, 2
@@ -3065,6 +3080,13 @@ init_clocks2():
 	tio.bnei a0, (RCC_CFGR_SWS_PLL >> RCC_CFGR_SWS_Pos), 5b
 	ret
 ----
+
+Results::
+[cols="3,2,2,2",options=header]
+|====
+|  | risc-v | armv7-m | risc-v + XTightlyCoupledIO
+| code size (bytes) | 116(108 without redundant lui) | 104 | 52
+|====
 
 === stm32f0 gpio + timer init for 7segment display (assume reset state of registers)
 
@@ -3246,10 +3268,16 @@ init_7seg():
 	ret
 ----
 
+Results::
+[cols="3,2,2,2",options=header]
+|====
+|  | risc-v | armv7-m | risc-v + XTightlyCoupledIO
+| code size (bytes) | 128 | 124 | 60(58 at higher pressure)
+|====
+
 === stm32f0 7segment display interrupt handler
 
 comes from: <<ssegstm32>>, heavily based on BSRR/BRR registers.
-
 
 [source, C++]
 ----
@@ -3316,21 +3344,21 @@ TIM16_IRQHandler:                       # @TIM16_IRQHandler
 	sw      zero, 1040(a0)
 	lui     a0, 294912
 	li      a1, 300
-	sw      a1, 1048(a0)
+	sw      a1, 1048(a0) //20
 	lui     a1, %hi(displ)
 	addi    a2, a1, %lo(displ)
 	lw      a3, 16(a2)
 	li      a1, 3
-	beqz    a3, .LBB0_2
-	addi    a1, a3, -1
+	beqz    a3, .LBB0_2 //34
+	addi    a1, a3, -1 //38
 .LBB0_2:
 	sw      a1, 16(a2)
 	sh2add  a2, a1, a2
-	lw      a2, 0(a2)
+	lw      a2, 0(a2) //46
 	lui     a3, %hi(trimmed::column_pin_mask_lut)
 	addi    a3, a3, %lo(trimmed::column_pin_mask_lut)
-	sh1add  a1, a1, a3
-	lhu     a1, 0(a1)
+	sh1add  a1, a1, a3 //58
+	lhu     a1, 0(a1) //62
 	sw      a2, 24(a0)
 	sw      a1, 1064(a0)
 	ret
@@ -3376,23 +3404,32 @@ risc-v + XTightlyCoupledIO::
 	tio.addi GPIOB_BSRR, zero, 0x12c // pins 2,3,5,8
 	lui a0, %hi(displ)
 	addi a0, a0, %lo(displ)
-	lw a1, 16(a0) // get cnt
+	c.lw a1, 16(a0) // get cnt
 	c.bnez a1, 1f
 	c.li a1, 4
 1:
 	c.addi a1, -1
 	c.sw a1, 16(a0)
 	sh2add a0, a1, a0 // disp_cache[cnt]
-	lw a0, 0(a0)
+	c.lw a0, 0(a0)
 	tio.cm.mv GPIOA_BSRR, a0
 	lui a0 %hi(trimmed::column_pin_mask_lut)
 	addi a0 %lo(trimmed::column_pin_mask_lut)
 	sh1add a0, a1, a0
-	lh a0, 0(a0)
+	lh a0, 0(a0) //c. with Zcb
 	tio.cm.mv GPIOB_BRR, a0
 	ret
 ----
 
+Results::
+[cols="3,2,2,2",options=header]
+|====
+|  | risc-v | armv7-m | risc-v + XTightlyCoupledIO
+| code size (bytes) | 70(68 with Zcb) | 64 | 52(50 with Zcb)
+|====
+Results assume that FLASH/SRAM are kept at typical 0x08000000/0x20000000 addresses
+
+NOTE:`gp` relaxing can further reduce risc-v sizes
 
 === c2000 workshop sample
 
@@ -3710,7 +3747,7 @@ are used for control loops) The early trigger happens at least 36 cycles ahead
 (@170MHz, 12,5 cycle conv, 60MHz adc clk) of the end of conversion, requiring additional wait loop.
 c2000 guarantees that early trigger covers only irq entry latency
 
-3p3z control loop irq, implemented using transpoed direct form II::
+3p3z control loop irq, implemented using transposed direct form II IIR filter::
 [source, C++]
 ----
 #include <algorithm>
@@ -3752,6 +3789,7 @@ void ADC1_IRQHandler()
 	float out = buck2.Z[0] + in * buck2.b[0];
 
 	// saturate negative, timer saturates positive
+	// casting directly to unsigned is UB in C/C++ (and it does break on x86)
 	HRTIM1_TIMA->CMP1xR = std::max((int)out, 0);
 
 	// defer non critical code to after the timer write
@@ -3891,15 +3929,20 @@ Results::
 [cols="3,2,2,2",options=header]
 |====
 |  | risc-v | armv7-m | risc-v + XTightlyCoupledIO
-| total cycles (possible)  | 32(30) | 33 | 28(25)
+| total cycles (possible)  | 32(30) | 33 | 28(26)
 | non filter loads/stores  | 2 | 4(2 pcrel) | 0
-| cycles to PWM (possible) | 12(10) | 16(13) | 9(6)
+| cycles to PWM (possible) | 12(9) | 16(13) | 9(7)
 |====
+
+NOTE: possible results assume `gp` relaxing of all filter variable loads, and deffering
+all unnecessary instructions. Additional unaccounted cycles can be gained by saturating negative
+to zero by float to int conversion which is UB in C/C++ (1 in risc-v and 2 in armv7-m)
+Another is ADC sign extending to 32 bits (1 cycle for armv7-m and Xtightlycoupledio)
 
 ==== ultra low latency 3p3z
 
 In order to reduce phase erosion (by up to 18 degres according to <<h2pdspic>>,<<an5305>>) the
-ADC blanking period have to be extended towards the end of cycle. +
+ADC blanking period have to be extended towards the end of the switching cycle. +
 The following techniques can be employed to improve sample to PWM update latency.
 
 - Use ADC early trigger (if available). When conversion extends over the computations, then
@@ -3908,7 +3951,8 @@ resolve to `1: tio.bsbclri ADC1_ISR, ADC_ISR_JEOSMP_Pos, 1b`) <<h2pdspic>>
 - Use transposed direct form II with natural result latency of 1 MAC operation
 - (in e.g. Direct form I) precompute most of the accumulations in previous cycle, as described in <<h2pdspic>>
 - Defer the state updates to after the write to timer registers
-- apply gain factor (K) to the numerator coefficients instead of applying it separatly. (FP)
+- apply gain factor (K) to the numerator coefficients instead of applying it separatly. (straightforward only
+with FP implementations)
 
 NOTE: Some of these techniques can affect the latency by imposing additional register pressure.
 Even if output is computed early, the compiler will spill all registers before executing

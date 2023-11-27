@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.45
+:appversion: 3.2.46
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.46 | fixed typos
 | v3.2.45 | typo, anti windup satration not considered
 | v3.2.44 | add code size comparisons to stm32f0 samples
 | v3.2.43 | reorganized 3p3z appendix
@@ -2935,7 +2936,7 @@ void init_clocks2()
 	}
 
 	RCC->CR &= ~RCC_CR_PLLON;
-	while((RCC->CR & RCC_CR_PLLRDY))
+	while((RCC->CR & RCC_CR_PLLRDY));
 
 	RCC->CFGR = RCC_CFGR_PLLMUL12 | (RCC->CFGR & ~RCC_CFGR_PLLMUL_Msk); 
 	
@@ -3738,7 +3739,7 @@ magic numbers and overall design according to <<an5305>>, that provides followin
 - Vref (aka target voltage, not to be confused with ADC reference voltage) set by DAC on the
 differential ADC, or subtracted by ADC from result (`ADC_OFRy`).
 - ADC handles sign extension to 16 bits (right adjusted)
-- timer saturates the output to maximum duty (assuming >16bit values are not produced, or handled 
+- timer saturates the output to maximum duty (assuming >16bit values are not produced, or are handled 
 by timer)
 - anti windup accumulator saturation (as used by denominators) not considered
 - early conversion trigger not available
@@ -4028,7 +4029,7 @@ by "preserving shadow registers" (+Zfinx)::
 ADC1_IRQHandler():
 	tio.fcvt.s.w a0, ADC1_DR // adc sign extends
 	fmadd.s a1, a0, x28, x20
-	fcvt.wu.s a2, a1 // saaturate negative, UB in C/C++
+	fcvt.wu.s a2, a1 // saturate negative, UB in C/C++
 	tio.cm.mv HRTIM1_TIMA_CMP1xR, a2 // can do tio.max after fcvt.w
 	tio.bseti ADC1_ISR, zero, ADC_ISR_JEOC_Pos // can also tio.addi
 	fmadd.s x20, a0, x29, x21

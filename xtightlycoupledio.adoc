@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.47
+:appversion: 3.2.48
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.48 | typos, some improvemets
 | v3.2.47 | typos, improve appendix
 | v3.2.46 | fixed typos
 | v3.2.45 | typo, anti windup satration not considered
@@ -267,9 +268,7 @@ mappings instead anyway.
 
 ==== xmos
 
-Xmos went for software defined peripherals with a barrel processing.
-
-<<xmosxs1>>, <<xmosprog>>
+Xmos went for software defined peripherals with a barrel processing. <<xmosxs1>>, <<xmosprog>>
 
 The IO ports can be divided into 1,4,8,16, or 32 bit witdth. +
 Buffered by shift registers, clocked by a timer or external clock. +
@@ -286,8 +285,7 @@ Provided by the following instructions:
 - bit test (and set/clear/change) instructions (updates carry flag)
 
 Later versions (e.g. 56800) <<DSP56800RM>> extended the single bit into a bitmask match
-where all of selected bits must be set or cleared to cause the condition.
-
+where all of selected bits must be set or cleared to cause the condition. +
 Masks in branching instructions are limited to 8 bits, targeting top or bottom byte.
 
 === alternative approaches
@@ -295,7 +293,8 @@ Masks in branching instructions are limited to 8 bits, targeting top or bottom b
 ==== map to upper GPR
 
 Available on RVE only. Limited to 16 GPR mapped registers.
-Allows to recycle standard risc-v instructions operating on GPRs. 
+Allows to recycle major part of the microarchitectural pipeline as well as standard 
+risc-v instructions operating on GPRs. 
 
 ==== use custom `csr` registers
 
@@ -336,7 +335,7 @@ NOTE: ABI deviations is not standardized at this moment
 
 ==== use AMO-op instructions
 
-There is limited availability of A extension acros embedded cores.
+There is limited availability of A extension across embedded cores.
 
 Still requires loading of base address. +
 Base address must be generated with full `lui` + `addi` sequence as there is no immediate offset 
@@ -350,7 +349,8 @@ NOTE: still available in first alternative approach as well as ABI deviations on
 ==== load to IO/store from IO register
 
 Useful to directly store or load IO content to/from memory without processing.
-It is also non deterministic and can trap due to e.g. alignment or pmp restrictions, violating atomicity guarantee.
+It is also non deterministic and can trap due to e.g. alignment or pmp 
+restrictions, violating atomicity guarantee (with expensive workarounds).
 Those also would consume a lot of encoding space.
 
 ==== IO with multiply/multiply-accumulate
@@ -411,7 +411,7 @@ NOTE: Destructive encodings are also justified by a bitfield insert instructions
 possible only within destructive encoding.
 
 NOTE: P extension is about to introduce instructions with destructive `rd` encodings,
-including IFMA, designated for DSP tasks
+including IFMA, designated for DSP tasks of the same domain as targeted by XTightlyCoupledIO
 
 ==== `bfp` from 0.94 bitmanip
 
@@ -503,10 +503,10 @@ Not reflecting actual memory mapped registers.
 
 ==== memory model of IO access
 
-The access to IO registers by `tio.` instructions, follows the TSO moemory model with respect to each other.
+The access to IO registers by `tio.` instructions, follows the TSO memory model with respect to each other.
 The repeated accesses to the same IO register is sequentially consistent.
 
-NOTE: TSO model is the best fit for typicall in-order pipelines longer than 2-3 stages
+NOTE: TSO model is the best fit for typical in-order pipelines longer than 2-3 stages
 
 NOTE: implementations cannot reuse operand forwarding to solve RAW hazards of IO registers
 due to `volatile` rules

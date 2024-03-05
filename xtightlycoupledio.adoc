@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.48
+:appversion: 3.2.49
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.49 | typos
 | v3.2.48 | typos, some improvemets
 | v3.2.47 | typos, improve appendix
 | v3.2.46 | fixed typos
@@ -3802,7 +3803,7 @@ void ADC1_IRQHandler()
 	HRTIM1_TIMA->CMP1xR = std::max((int)out, 0);
 
 	// defer non critical code to after the timer write
-    ADC1->ISR = ADC_ISR_JEOC; // ack the interrupt
+	ADC1->ISR = ADC_ISR_JEOC; // ack the interrupt
 
 	buck2.Z[0] = buck2.Z[1] + in * buck2.b[1] + out * buck2.a[1 - 1];
 	buck2.Z[1] = buck2.Z[2] + in * buck2.b[2] + out * buck2.a[2 - 1];
@@ -3911,21 +3912,21 @@ ADC1_IRQHandler():
 	fcvt.w.s a1, fa3
 	tio.max HRTIM1_TIMA_CMP1xR, a1, zero
 	tio.bseti ADC1_ISR, zero, ADC_ISR_JEOC_Pos // can also tio.addi
-	flw fa2, 4(a0) // Z[1]
-	flw fa3 16(a0) // b[1]
+	flw fa2,, 4(a0) // Z[1]
+	flw fa3, 16(a0) // b[1]
 	fmadd.s fa2, fa0, fa3, fa2
-	flw fa3 28(a0) // a[0]
+	flw fa3, 28(a0) // a[0]
 	fmadd.s fa2, fa1, fa3, fa2
 	fsw fa2, 0(a0) // Z[0]
 	flw fa2, 8(a0) // Z[2]
-	flw fa3 20(a0) // b[2]
+	flw fa3, 20(a0) // b[2]
 	fmadd.s fa2, fa0, fa3, fa2
-	flw fa3 32(a0) // a[1]
+	flw fa3, 32(a0) // a[1]
 	fmadd.s fa2, fa1, fa3, fa2
 	fsw fa2, 4(a0) // Z[1]
-	flw fa3 24(a0) // b[3]
+	flw fa3, 24(a0) // b[3]
 	fmul.s fa2, fa0, fa3
-	flw fa3 36(a0) // a[2]
+	flw fa3, 36(a0) // a[2]
 	fmadd.s fa2, fa1, fa3, fa2
 	fsw fa2, 8(a0) // Z[2]
 	ret

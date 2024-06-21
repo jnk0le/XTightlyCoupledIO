@@ -1,12 +1,12 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.49
+:appversion: 3.2.50
 :toc:
 :toclevels: 4
 :sectnums:
 :autofit-option:
-
+:pdf-theme: theme.yml
 
 {author} {email} +
 document version {appversion} +
@@ -19,66 +19,9 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
-| v3.2.49 | typos
-| v3.2.48 | typos, some improvemets
-| v3.2.47 | typos, improve appendix
-| v3.2.46 | fixed typos
-| v3.2.45 | typo, anti windup satration not considered
-| v3.2.44 | add code size comparisons to stm32f0 samples
-| v3.2.43 | reorganized 3p3z appendix
-| v3.2.42 | some improvements in x86 section
-| v3.2.41 | optimized 3p3z output scaling
-| v3.2.40 | found another AN describing some of the tricks
-| v3.2.39 | adjust table
-| v3.2.38 | adjust table
-| v3.2.37 | summary comparison of 3p3z, further optimizations
-| v3.2.36 | added tio implementation of 3p3z sample
-| v3.2.35 | reimplement 3p3z to transposed direct form II
-| v3.2.34 | some cleanup, removed v2 patch changes from revision history
-| v3.2.33 | fixed ADC to float reads, low reg pressure 3p3z sample
-| v3.2.32 | some corrections
-| v3.2.31 | added floating point 3p3z control loop sample
-| v3.2.30 | fixed bibliography links
-| v3.2.29 | typo
-| v3.2.28 | extended rationale against tio multiplication instructions
-| v3.2.27 | x86 had off-chip peripherals
-| v3.2.26 | added 56k to prior art
-| v3.2.25 | added xmos prior
-| v3.2.24 | added x86 io ports to prior
-| v3.2.23 | some cleanup and explanation in samples appendix
-| v3.2.22 | use optimized 7segment irq sample
-| v3.2.21 | trim long lines in listings
-| v3.2.20 | autofit
-| v3.2.19 | use proper listings for code
-| v3.2.18 | added 7segment irq sample
-| v3.2.17 | 7segment code does bsrr lookups on non continous bit-fields
-| v3.2.16 | added note about the major revisions
-| v3.2.15 | typo
-| v3.2.14 | typo
-| v3.2.13 | commentary fixes, added note about P ext destructive instructions
-| v3.2.12 | some improvements
-| v3.2.11 | reference the avr8 isa
-| v3.2.10 | fixed inline code rendering
-| v3.2.9  | fixed bibliography numbering
-| v3.2.8  | more notes on bitfield type punning
-| v3.2.7  | there is also slow short branch
-| v3.2.6  | some clarifications
-| v3.2.5  | more c2000 samples
-| v3.2.4  | trim 1.0 from revision history, adjust column widths
-| v3.2.3  | corrected calculation of c2000 code sizes
-| v3.2.2  | typo
-| v3.2.1  | extended c2000 analysis
+| v3.2.50 | trimmed non functional changes from revision history, smaller font
 | v3.2.0  | improved sideattach syntax, extra notes
 | v3.1.0  | added `tio.nop` and `tio.nop.sideattach`
-| v3.0.9  | minor improvements
-| v3.0.8  | add note about volatile bitfield insertion
-| v3.0.7  | improved MMIO less chapter
-| v3.0.6  | improved citations
-| v3.0.5  | considered scenario can be also done in `bseti`+`bclri`
-| v3.0.4  | typos fix
-| v3.0.3  | add section about MMIO less peripheral registers
-| v3.0.2  | added rationale against `bfp` from bitmanip 0.94
-| v3.0.1  | fixed typos
 | v3.0.0  | rework of encodings, removed destructive shifts and `beq.y`/`bne.y`
             canonical move into IO uses rs2 for symmetry with compressed encoding
 | v2.8.0  | added fence interop

@@ -23,7 +23,7 @@ jobs:
       NPM_PACKAGE_FOLDER: ${{ github.workspace }}/dependencies
       PDF_RESULT: XTightlyCoupledIO.pdf
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install Ubuntu packages
       run: |
         sudo apt-get update
@@ -42,7 +42,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '20'
     - name: Install Node.js dependencies

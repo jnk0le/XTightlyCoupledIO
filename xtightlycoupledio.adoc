@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.50
+:appversion: 3.2.51
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.51 | add note about limitations imposed by compiler in in rv32e
 | v3.2.50 | trimmed non functional changes from revision history, smaller font
 | v3.2.0  | improved sideattach syntax, extra notes
 | v3.1.0  | added `tio.nop` and `tio.nop.sideattach`
@@ -238,7 +239,10 @@ Masks in branching instructions are limited to 8 bits, targeting top or bottom b
 
 Available on RVE only. Limited to 16 GPR mapped registers.
 Allows to recycle major part of the microarchitectural pipeline as well as standard 
-risc-v instructions operating on GPRs. 
+risc-v instructions operating on GPRs.
+
+NOTE: even though it's seems to be the simplest approach, compilers are not allowing
+direct usage of higher registers in RV32E 
 
 ==== use custom `csr` registers
 
@@ -267,7 +271,11 @@ preformatted (shifted) constants even if only single bit is written.
 NOTE: BSRR is still usefull for `tio.mv` acces as it can work on non-continous bitfields 
 or content from pre generated lookup tables <<ssegstm32>>
 
-==== use reserved registers in ABI deviations
+==== use reserved registers
+
+by ABI deviations or `-ffixed-xN` flag.
+
+NOTE: ABI deviations is not standardized at this moment
 
 Similar to ti PRU approach.
 
@@ -275,7 +283,6 @@ Only a few registers can be reserved like that. It takes out general purpose reg
 from use leading to less efficient code. Some assembly code would have to be rewritten to
 avoid now reserved registers.
 
-NOTE: ABI deviations is not standardized at this moment
 
 ==== use AMO-op instructions
 

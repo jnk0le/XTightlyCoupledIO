@@ -52,7 +52,7 @@ jobs:
         PATH=${PATH}:${BUNDLE_BIN}:$(npm bin) \
         make ${PDF_RESULT}
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: XTightlyCoupledIO.pdf
         path: ${{ env.PDF_RESULT }}

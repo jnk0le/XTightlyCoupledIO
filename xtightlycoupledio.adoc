@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.51
+:appversion: 3.2.52
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.52 | some text improvements
 | v3.2.51 | add note about limitations imposed by compiler in in rv32e
 | v3.2.50 | trimmed non functional changes from revision history, smaller font
 | v3.2.0  | improved sideattach syntax, extra notes
@@ -577,12 +578,12 @@ NOTE: still suitable for a dedicated IO slave cores.
 All IO accessing instructions are prefixed with `tio.` prefix. +
 Bank number is part of the instruction name, except supplementary instructions. +
 The suffix denominates wether `rd` or `rs1` field targets io registers +
-Takes the form of `tio.instr{n}.{rdm}{rsm}` where {n} is the bank number
-and {rdm} and {rsm} are substituted with one of the following letter.
+Takes the form of `tio.instr{n}.{rdm}{rsm}` where `{n}` is the bank number
+and `{rdm}` and `{rsm}` are substituted with one of the following letter.
 
 - x - integer reg
 - s - floating point reg
-- y - io reg
+- y - io reg, in bank `{n}`
 
 Register specifiers use the same letter.
 
@@ -3961,7 +3962,7 @@ by adc early trigger::
 ----
 
 NOTE: `tio.bsbclri/seti` can be implemented as a pipeline stall until condition is met.
-Wchich avoids introducing jitter/latency from a branch overhead.
+Which avoids introducing jitter/latency from a branch overhead.
 
 by "preserving shadow registers" (+Zfinx)::
 [source, asm]

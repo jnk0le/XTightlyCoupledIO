@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.52
+:appversion: 3.2.53
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.53 | more improvements, IO by csr on esp32, extra avr8 note
 | v3.2.52 | some text improvements
 | v3.2.51 | add note about limitations imposed by compiler in in rv32e
 | v3.2.50 | trimmed non functional changes from revision history, smaller font
@@ -81,8 +82,8 @@ My observation of frequent peripheral patterns are:
 - register written with zero
 - in specific cases like STM32 BSRR or flag clearing, a single bit or inverted single bit constant is used
 - the register content comes directly from/to memory
-- otherwise the content is used in/comes from computations
-- register content is immediately converted to float for computation
+- otherwise the content is used in/comes from basic ALU computations
+- register content is immediately converted to float for computation in control loop
 - small bitfields are extracted or inserted from/to registers
 
 NOTE: Also the C/C++ `volatile` specifier prevent many possible compiler optimizations. 
@@ -144,7 +145,13 @@ It is also worth to mention that avr8 architecture has not been licensed to 3rd 
 like the 8051 did. Even though it could offer better PPA <<doc1292>> and development ease than average "1T" 8051.
 Today we have only a few chinese clones of atmega328p due to expired patents.
 
-==== ti PRU 
+NOTE: avr8 archtecture is still architecturally inefficient as it's 8 bit architecture
+often used with 16 bit variables, due to pointers and the `int` type being 16bit, effectively
+doubling the number of instructions. Even when pointers are 8bit (e.g. attiny2313), compilers
+still use 16bit ones. Allocations on stack pointer are also highly inefficent
+due to requirement of atomicity when changing 16bit stack pointer, which is mapped to IO address space.
+
+==== ti PRU
 
 Proprietary TI RISC architecture <<spruij2>>. Popularized in beaglebone sbcs
 
@@ -156,7 +163,7 @@ special instructions for:
 - set/clear bit
 - branch if bit is set/cleared
 
-Source and destinstion operands can independently address their bytes and half-words.
+Source and destination operands can independently address their bytes and half-words.
 
 ==== ti c2000
 
@@ -243,17 +250,22 @@ Allows to recycle major part of the microarchitectural pipeline as well as stand
 risc-v instructions operating on GPRs.
 
 NOTE: even though it's seems to be the simplest approach, compilers are not allowing
-direct usage of higher registers in RV32E 
+direct usage of upper registers in RV32E 
 
 ==== use custom `csr` registers
 
-csrr* instructions implement an atomic swap and immediate bitmask set/clear operations.
+csrr* instructions implement an atomic swap and immediate bitmask set/clear operations.+
+Only bottom 5 bits are reachable by immediate.
 
 However `csr` registers are generally used to modify core architectural behaviour and thus perform slower than expected.
 
 NOTE: for this reason RISC-V V spec forbids writes to `vtype` and `vl` with anything but `vsetvl` instructions
 
 NOTE: xpulp extension is also planning on disallowing writes to hwloop registers with general csr instructions
+
+This exact approach has been implemented in risc-v based esp32 <<esp32c6riscv>>, allows only
+for 8 GPIO pins mapped into csr registers (separately for input and output). 
+Reads incur extra 2 cycle penalty.
 
 ==== bitbanding
 
@@ -463,13 +475,13 @@ NOTE: TSO model is the best fit for typical in-order pipelines longer than 2-3 s
 NOTE: implementations cannot reuse operand forwarding to solve RAW hazards of IO registers
 due to `volatile` rules
 
-Synchronization with (indepotent) memory access requires explicit `FENCE` synchronization.
-
 Access to IO registers by `tio.` instructions and memory mapped interface is not synchronized.
 
 NOTE: it would be too expensive to sync read-ALU-writeback stages with memory interface
 
 NOTE: implementations are still free to microcode `tio.` instructions using memory load and store
+
+Synchronization with (indepotent) memory access requires explicit `FENCE` synchronization.
 
 ==== `fence` interop
 
@@ -4033,3 +4045,4 @@ NOTE: FMA4 instructions allow to get rid of 2 unnecesary moves (as per TDF2 impl
 * [[[xteic, 20]]] https://github.com/jnk0le/riscv-total-embedded
 * [[[an5305, 21]]] https://www.st.com/resource/en/application_note/an5305-digital-filter-implementation-with-the-fmac-using-stm32cubeg4-mcu-package-stmicroelectronics.pdf
 * [[[h2pdspic, 22]]] https://www.how2power.com/newsletters/1603/articles/H2PToday1603_design_Microchip.pdf?NOREDIR=1
+* [[[esp32c6riscv, 23]]] https://documentation.espressif.com/esp32-c6_technical_reference_manual_en.pdf

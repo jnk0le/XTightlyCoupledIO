@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.53
+:appversion: 3.2.54
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.54 | rp2350 coprocessor instructions
 | v3.2.53 | more improvements, IO by csr on esp32, extra avr8 note
 | v3.2.52 | some text improvements
 | v3.2.51 | add note about limitations imposed by compiler in in rv32e
@@ -145,7 +146,7 @@ It is also worth to mention that avr8 architecture has not been licensed to 3rd 
 like the 8051 did. Even though it could offer better PPA <<doc1292>> and development ease than average "1T" 8051.
 Today we have only a few chinese clones of atmega328p due to expired patents.
 
-NOTE: avr8 archtecture is still architecturally inefficient as it's 8 bit architecture
+NOTE: avr8 archtecture is still architecturally inefficient as it's 8 bit architecture,
 often used with 16 bit variables, due to pointers and the `int` type being 16bit, effectively
 doubling the number of instructions. Even when pointers are 8bit (e.g. attiny2313), compilers
 still use 16bit ones. Allocations on stack pointer are also highly inefficent
@@ -180,10 +181,10 @@ The CLA can also convert to float directly from memory (including peripherals)
 
 Uses exactly the same code of memory mapped IO but the loads and stores execute in 1 cycle instead of 2 cycles
 
-==== PIO (in RP2040)
+==== PIO (in RP2040/RP2350)
 
 Reffered to as a programmable state machine, able to emulate serial and parallel
-peripherals over GPIO. Very limited instruction set.
+peripherals over GPIO. Very limited instruction set and program space.
 
 Assumes cycle accurate, single cycle micro architecture. +
 Has an optional "side-set" operation and delay which stall execution of any following instruction.
@@ -241,6 +242,15 @@ Later versions (e.g. 56800) <<DSP56800RM>> extended the single bit into a bitmas
 where all of selected bits must be set or cleared to cause the condition. +
 Masks in branching instructions are limited to 8 bits, targeting top or bottom byte.
 
+==== RP2350 GPIO coprocessor instructions
+
+cortex-m33 coprocessor instructions targetting GPIO. <<rp2350>>
+
+offers:
+- the read/set as well as atomic and/or/xor operations
+- instructions accessing only a single bit (bit position must be passed through register)
+- double wide access (requires at least 3r2w regfile, already available in m33)
+
 === alternative approaches
 
 ==== map to upper GPR
@@ -278,6 +288,8 @@ Must be used explicitly in source code
 ==== special purpose write only registers
 
 Special kind of write only registers e.g BSRR/IFCR found in STM32 and clones. +
+As well as an atomic and/or/xor operation in rp2040/rp2350 <<rp2040>>, <<rp2350>>.
+
 Still require loading of peripheral base address. Requires also generating 
 preformatted (shifted) constants even if only single bit is written.
 
@@ -4046,3 +4058,5 @@ NOTE: FMA4 instructions allow to get rid of 2 unnecesary moves (as per TDF2 impl
 * [[[an5305, 21]]] https://www.st.com/resource/en/application_note/an5305-digital-filter-implementation-with-the-fmac-using-stm32cubeg4-mcu-package-stmicroelectronics.pdf
 * [[[h2pdspic, 22]]] https://www.how2power.com/newsletters/1603/articles/H2PToday1603_design_Microchip.pdf?NOREDIR=1
 * [[[esp32c6riscv, 23]]] https://documentation.espressif.com/esp32-c6_technical_reference_manual_en.pdf
+* [[[rp2040, 24]]] https://pip-assets.raspberrypi.com/categories/814-rp2040/documents/RP-008371-DS-1-rp2040-datasheet.pdf?disposition=inline
+* [[[rp2350, 25]]] https://pip-assets.raspberrypi.com/categories/1214-rp2350/documents/RP-008373-DS-2-rp2350-datasheet.pdf?disposition=inline

@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.54
+:appversion: 3.2.55
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.55 | added dspic
 | v3.2.54 | rp2350 coprocessor instructions
 | v3.2.53 | more improvements, IO by csr on esp32, extra avr8 note
 | v3.2.52 | some text improvements
@@ -250,6 +251,16 @@ offers:
 - the read/set as well as atomic and/or/xor operations
 - instructions accessing only a single bit (bit position must be passed through register)
 - double wide access (requires at least 3r2w regfile, already available in m33)
+
+==== dsPIC33 (16bit and 32bit)
+
+offers CISC addressing modes to acces the peripheral SFRs
+
+- indirect addressing mode where one source and destination register can be a pointer to SFR
+- direct addressing (aka "file register addressing") which can acces "near memory space" 
+(8KiB on 16bit and 64KiB on 32bit ones)
+
+Full set of bit and bitfield instructions. Bit can be extracted to status flags for branching.
 
 === alternative approaches
 

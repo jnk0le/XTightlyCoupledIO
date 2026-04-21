@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.55
+:appversion: 3.2.56
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.56 | added BIO
 | v3.2.55 | added dspic
 | v3.2.54 | rp2350 coprocessor instructions
 | v3.2.53 | more improvements, IO by csr on esp32, extra avr8 note
@@ -190,6 +191,8 @@ peripherals over GPIO. Very limited instruction set and program space.
 Assumes cycle accurate, single cycle micro architecture. +
 Has an optional "side-set" operation and delay which stall execution of any following instruction.
 
+Reimplementation attempts showed logic/area consumption larger than fully featured RISC-V cores <<BIO>>
+
 ==== 8051
 
 8051 dedicates half of IRAM address space (aka zero page) for IO SFRs.
@@ -254,13 +257,13 @@ offers:
 
 ==== dsPIC33 (16bit and 32bit)
 
-offers CISC addressing modes to acces the peripheral SFRs
+offers CISC addressing modes to access the peripheral SFRs
 
 - indirect addressing mode where one source and destination register can be a pointer to SFR
-- direct addressing (aka "file register addressing") which can acces "near memory space" 
+- direct addressing (aka "file register addressing") which can access "near memory space" 
 (8KiB on 16bit and 64KiB on 32bit ones)
 
-Full set of bit and bitfield instructions. Bit can be extracted to status flags for branching.
+Full set of bit and bitfield instructions. Bit can be extracted into status flags for branching.
 
 === alternative approaches
 
@@ -271,7 +274,9 @@ Allows to recycle major part of the microarchitectural pipeline as well as stand
 risc-v instructions operating on GPRs.
 
 NOTE: even though it's seems to be the simplest approach, compilers are not allowing
-direct usage of upper registers in RV32E 
+direct usage of upper registers in RV32E
+
+NOTE: This approach has been picked multiple times for "IO coprocessor", one of these is BIO <<BIO>> 
 
 ==== use custom `csr` registers
 
@@ -304,7 +309,7 @@ As well as an atomic and/or/xor operation in rp2040/rp2350 <<rp2040>>, <<rp2350>
 Still require loading of peripheral base address. Requires also generating 
 preformatted (shifted) constants even if only single bit is written.
 
-NOTE: BSRR is still usefull for `tio.mv` acces as it can work on non-continous bitfields 
+NOTE: BSRR is still usefull for `tio.mv` access as it can work on non-continous bitfields 
 or content from pre generated lookup tables <<ssegstm32>>
 
 ==== use reserved registers
@@ -353,7 +358,7 @@ In presence of P or other custom DSP extension, it would be necessary to provide
 IO versions of the myriads of those multiply accumulate instructions.
 Otherwise `tio.mul` + `add` wouldn't provide any benefit over `tio.mv` + `dsp.macc` sequence.
 
-NOTE: if the `mulh` is necessary the `tio.mul` becomes useless 
+NOTE: if the `mulh` is necessary, the `tio.mul` becomes useless 
 
 NOTE: P ext like, `tio.mull.xy` with destination register pair should still be possible 
 
@@ -3489,10 +3494,10 @@ specified in C <<typepunninginc>>
 
 from <<spraa85a>>, par 5.
 
-This is the kind of coding that appears very frequently, especially in c2000 codebases.
+This is the kind of coding that appears very frequently, especially in c2000 and dsPIC codebases.
 Even though it is possible to coalesce all of that into a single write, compilers 
 can't do anything about that. Any optimization attempt by compilers will change
-the resulting side effects effectively breakig the code.
+the resulting side effects, effectively breakig the code.
 
 [source, C]
 ----
@@ -3717,10 +3722,10 @@ tio.cm.bseti ECana_CANMC, ECana_CANMC_SCB_Pos
 
 NOTE: risc-v is naturally 32bit, no gimmicks required.
 
-NOTE: C/C++ allows compilers to generate narrower acces to type puned volatile bitfields
+NOTE: C/C++ allows compilers to generate narrower access to type puned volatile bitfields
 and it does happen <<typepunnedacces1>>,<<typepunnedacces2>>  until `-fstrict-volatile-bitfields` flag is provided.
 Therefore the explicit volatile load/store must always be porformed to safely use type punning by bitfields.
-(c2000 cannot do narrower access than 16 bits so their compiler cannot break 16bit peripherals)
+(c2000 cannot do narrower access than 16 bits, so their compiler cannot break 16bit peripherals)
 
 === stm32g4 buck converter (3p3z, voltage mode)
 
@@ -4071,3 +4076,4 @@ NOTE: FMA4 instructions allow to get rid of 2 unnecesary moves (as per TDF2 impl
 * [[[esp32c6riscv, 23]]] https://documentation.espressif.com/esp32-c6_technical_reference_manual_en.pdf
 * [[[rp2040, 24]]] https://pip-assets.raspberrypi.com/categories/814-rp2040/documents/RP-008371-DS-1-rp2040-datasheet.pdf?disposition=inline
 * [[[rp2350, 25]]] https://pip-assets.raspberrypi.com/categories/1214-rp2350/documents/RP-008373-DS-2-rp2350-datasheet.pdf?disposition=inline
+* [[[BIO, 26]]] https://www.bunniestudios.com/blog/2026/bio-the-bao-i-o-coprocessor/

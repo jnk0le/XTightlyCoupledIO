@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.56
+:appversion: 3.2.57
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.57 | typo fixes
 | v3.2.56 | added BIO
 | v3.2.55 | added dspic
 | v3.2.54 | rp2350 coprocessor instructions
@@ -220,9 +221,9 @@ There is some legacy peripherals at fixed IO addresses. The rest are typically r
 Originally designed for 8080/8086 peripherals hanging on an off-chip bus, and thus not
 being tightly integrated.
 Today serving as a legacy ballast. As the address space is no more constrained
-and the code size gains are negligible. +
+and the code size gains are negligible.
 Especially considering the fact that the offending peripherals typically use MMIO 
-mappings instead anyway.
+mappings instead, anyway.
 
 ==== xmos
 
@@ -276,7 +277,7 @@ risc-v instructions operating on GPRs.
 NOTE: even though it's seems to be the simplest approach, compilers are not allowing
 direct usage of upper registers in RV32E
 
-NOTE: This approach has been picked multiple times for "IO coprocessor", one of these is BIO <<BIO>> 
+NOTE: This approach has been picked multiple times for "IO coprocessor" attempts, one of these is BIO <<BIO>> 
 
 ==== use custom `csr` registers
 

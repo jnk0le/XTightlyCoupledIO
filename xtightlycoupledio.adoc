@@ -1,7 +1,7 @@
 
 = XtightlyCoupledIO
 Jan Oleksiewicz <jnk0le@hotmail.com>
-:appversion: 3.2.57
+:appversion: 3.2.58
 :toc:
 :toclevels: 4
 :sectnums:
@@ -19,6 +19,7 @@ This document is released under a Creative Commons Attribution 4.0 International
 [cols="1,5",options=header]
 |====================================================================================
 | Version | Change
+| v3.2.58 | rework note
 | v3.2.57 | typo fixes
 | v3.2.56 | added BIO
 | v3.2.55 | added dspic
@@ -86,15 +87,14 @@ My observation of frequent peripheral patterns are:
 - register written with zero
 - in specific cases like STM32 BSRR or flag clearing, a single bit or inverted single bit constant is used
 - the register content comes directly from/to memory
-- otherwise the content is used in/comes from basic ALU computations
+- otherwise the content is immediately used in/comes from basic ALU computations
 - register content is immediately converted to float for computation in control loop
 - small bitfields are extracted or inserted from/to registers
 
-NOTE: Also the C/C++ `volatile` specifier prevent many possible compiler optimizations. 
-The "side effecting" acceses must follow what was written in the source code exactly, even though a 
-read + 2 single bit branches could be actually optimized into just two `tio.bsb*.y` instructions.
-There is no way to distinguish if the intent was to avoid side effects, taking snapshot of status flags in time
-or just an optimization for typical architectures.
+It is also worth to note that due to `volatile` specifier in C/C++, operations on peripheral
+registers cannot be optimized by merging multiple reads or writes into one.
+The reason is that the reads or writes may have a side effects and it's not possile
+for the compilers to infer the programmers intents.
 
 === prior art
 
